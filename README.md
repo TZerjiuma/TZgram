@@ -1,101 +1,35 @@
-# [Telegram Desktop][telegram_desktop] – Official Messenger
+# TZ-telegram 桌面端
 
-This is the complete source code and the build instructions for the official [Telegram][telegram] messenger desktop client, based on the [Telegram API][telegram_api] and the [MTProto][telegram_proto] secure protocol.
+> **本项目并非 Telegram 官方版本**，是基于 [Telegram 官方桌面端][telegram_desktop] 源码的二次开发，与 Telegram FZ-LLC 无关。
 
-[![Version](https://badge.fury.io/gh/telegramdesktop%2Ftdesktop.svg)](https://github.com/telegramdesktop/tdesktop/releases)
-[![Build Status](https://github.com/telegramdesktop/tdesktop/workflows/Windows./badge.svg)](https://github.com/telegramdesktop/tdesktop/actions)
-[![Build Status](https://github.com/telegramdesktop/tdesktop/workflows/MacOS./badge.svg)](https://github.com/telegramdesktop/tdesktop/actions)
-[![Build Status](https://github.com/telegramdesktop/tdesktop/workflows/Linux./badge.svg)](https://github.com/telegramdesktop/tdesktop/actions)
-[![Built with Depot](https://img.shields.io/badge/Built%20with-Depot.dev-46A75A)](https://depot.dev)
+由 **ONEBOAT 同舟** 二次开发并开源，登录界面与「设置 → 关于」均已标注二次开发信息。
 
-[![Preview of Telegram Desktop][preview_image]][preview_image_url]
+* 开源仓库：<https://github.com/TZerjiuma/tz-tdesktop>
+* Telegram 频道：[@oneboat](https://t.me/oneboat)
 
-The source code is published under GPLv3 with OpenSSL exception, the license is available [here][license].
+## 相对官方版本的改动
 
-## Supported systems
+1. **去除登录账户数量限制**：账户上限 3 个（Premium 6 个）。
+2. **微调 UI**：主界面侧边新增账户栏（`AccountsRail`），方便多账户之间切换。
+3. **关闭默认的文件自动下载**：文件、音乐等的自动下载上限置为 0，可在「设置 → 数据与存储 → 自动下载」中开启。
+4. **默认媒体下载上限 1 MB**：由官方的 8 MB 调整为 1 MB，GIF、视频的自动播放默认关闭。
+5. **关闭耗电选项**：省电（电池）与动画相关的耗电选项默认全部关闭。
+6. **品牌标注**：登录界面与「设置 → 关于」标注二次开发信息与开源地址。
+7. **默认简体中文语言包**：默认使用 `zh-hans`，可在「设置 → 语言」中切换。
+8. **关闭自动更新**：编译期关闭自动更新，不再启动更新检查，也没有新版本提示。
 
-The latest version is available for
+## 未做修改的部分
 
-* [Windows 7 and above (64 bit)](https://telegram.org/dl/desktop/win64) ([portable](https://telegram.org/dl/desktop/win64_portable))
-* [Windows 7 and above (32 bit)](https://telegram.org/dl/desktop/win) ([portable](https://telegram.org/dl/desktop/win_portable))
-* [macOS 10.13 and above](https://telegram.org/dl/desktop/mac)
-* [Linux static build for 64 bit](https://telegram.org/dl/desktop/linux)
-* [Snap](https://snapcraft.io/telegram-desktop)
-* [Flatpak](https://flathub.org/apps/details/org.telegram.desktop)
+**用户消息功能与隐私相关部分完全沿用官方实现，未做任何修改。** 包括消息收发与编辑、隐私与安全设置、群组与频道权限、两步验证、密钥与本地数据存储等。
 
-## Old system versions
+## 构建
 
-Version **4.9.9** was the last that supports older systems
+沿用官方版本的构建体系，说明见 [docs/building-win.md](docs/building-win.md) 等文档。
 
-* [macOS 10.12](https://updates.tdesktop.com/tmac/tsetup.4.9.9.dmg)
-* [Linux with glibc < 2.28 static build](https://updates.tdesktop.com/tlinux/tsetup.4.9.9.tar.xz)
+## 许可
 
-Version **2.4.4** was the last that supports older systems
-
-* [OS X 10.10 and 10.11](https://updates.tdesktop.com/tosx/tsetup-osx.2.4.4.dmg)
-* [Linux static build for 32 bit](https://updates.tdesktop.com/tlinux32/tsetup32.2.4.4.tar.xz)
-
-Version **1.8.15** was the last that supports older systems
-
-* [Windows XP and Vista](https://updates.tdesktop.com/tsetup/tsetup.1.8.15.exe) ([portable](https://updates.tdesktop.com/tsetup/tportable.1.8.15.zip))
-* [OS X 10.8 and 10.9](https://updates.tdesktop.com/tmac/tsetup.1.8.15.dmg)
-* [OS X 10.6 and 10.7](https://updates.tdesktop.com/tmac32/tsetup32.1.8.15.dmg)
-
-## Third-party
-
-* Qt 6 ([LGPL](http://doc.qt.io/qt-6/lgpl.html)) and Qt 5.15 ([LGPL](http://doc.qt.io/qt-5/lgpl.html)) slightly patched
-* OpenSSL 3.2.1 ([Apache License 2.0](https://openssl-library.org/source/license/apache-license-2.0.txt))
-* WebRTC ([New BSD License](https://github.com/desktop-app/tg_owt/blob/master/LICENSE))
-* zlib ([zlib License](http://www.zlib.net/zlib_license.html))
-* LZMA SDK 9.20 ([public domain](http://www.7-zip.org/sdk.html))
-* liblzma ([public domain](http://tukaani.org/xz/))
-* Google Breakpad ([License](https://chromium.googlesource.com/breakpad/breakpad/+/master/LICENSE))
-* Google Crashpad ([Apache License 2.0](https://chromium.googlesource.com/crashpad/crashpad/+/master/LICENSE))
-* GYP ([BSD License](https://github.com/bnoordhuis/gyp/blob/master/LICENSE))
-* Ninja ([Apache License 2.0](https://github.com/ninja-build/ninja/blob/master/COPYING))
-* OpenAL Soft ([LGPL](https://github.com/kcat/openal-soft/blob/master/COPYING))
-* Opus codec ([BSD License](http://www.opus-codec.org/license/))
-* FFmpeg ([LGPL](https://www.ffmpeg.org/legal.html))
-* Guideline Support Library ([MIT License](https://github.com/Microsoft/GSL/blob/master/LICENSE))
-* Range-v3 ([Boost License](https://github.com/ericniebler/range-v3/blob/master/LICENSE.txt))
-* Open Sans font ([Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0.html))
-* Vazirmatn font ([SIL Open Font License 1.1](https://github.com/rastikerdar/vazirmatn/blob/master/OFL.txt))
-* Emoji alpha codes ([MIT License](https://github.com/emojione/emojione/blob/master/extras/alpha-codes/LICENSE.md))
-* xxHash ([BSD License](https://github.com/Cyan4973/xxHash/blob/dev/LICENSE))
-* QR Code generator ([MIT License](https://github.com/nayuki/QR-Code-generator#license))
-* CMake ([New BSD License](https://github.com/Kitware/CMake/blob/master/Copyright.txt))
-* Hunspell ([LGPL](https://github.com/hunspell/hunspell/blob/master/COPYING.LESSER))
-* Ada ([Apache License 2.0](https://github.com/ada-url/ada/blob/main/LICENSE-APACHE))
-* zxcvbn-c ([MIT License](https://github.com/tsyrogit/zxcvbn-c/blob/master/LICENSE.txt))
-* FrequencyWords by Hermit Dave ([Creative Commons Attribution-ShareAlike 4.0](https://creativecommons.org/licenses/by-sa/4.0/))
-
-## Build instructions
-
-* [Windows (32-bit and 64-bit)][win]
-* [macOS][mac]
-* [GNU/Linux using Docker][linux]
+源码基于 [Telegram 官方桌面端][telegram_desktop] 发布，遵循 **GPLv3 with OpenSSL exception**，许可证见 [LICENSE][license]；二次开发部分的改动同样以该许可证发布。
 
 [//]: # (LINKS)
-[telegram]: https://telegram.org
-[telegram_desktop]: https://desktop.telegram.org
-[telegram_api]: https://core.telegram.org
-[telegram_proto]: https://core.telegram.org/mtproto
+[telegram_desktop]: https://github.com/telegramdesktop/tdesktop
 [license]: LICENSE
-[win]: docs/building-win.md
-[mac]: docs/building-mac.md
-[linux]: docs/building-linux.md
-[preview_image]: https://github.com/telegramdesktop/tdesktop/blob/dev/docs/assets/preview.png "Preview of Telegram Desktop"
-[preview_image_url]: https://raw.githubusercontent.com/telegramdesktop/tdesktop/dev/docs/assets/preview.png
-
-## Thanks to
-
-<a href="https://depot.dev">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://depot.dev/assets/brand/1693758816/depot-logo-horizontal-on-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="https://depot.dev/assets/brand/1693758816/depot-logo-horizontal-on-light.svg">
-    <img alt="Depot" src="https://depot.dev/assets/brand/1693758816/depot-logo-horizontal-on-light.svg" width="150">
-  </picture>
-</a>
-
-CI infrastructure sponsored by [Depot](https://depot.dev) — fast GitHub Actions runners.
-
