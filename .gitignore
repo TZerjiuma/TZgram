@@ -105,6 +105,10 @@ settings.local.json
 /Libraries/
 node_modules/
 
+# Submodules of the upstream 7.4 tree (not tracked by this branch)
+/Telegram/ThirdParty/twidget/
+/Telegram/ThirdParty/widget-sandbox/
+
 # Local scripts (not part of the shipped source)
 build.bat
 *.bat
