@@ -18,6 +18,10 @@ class AuthKey;
 namespace Storage {
 namespace details {
 
+// A bit in the stored power saving options that marks them as explicitly
+// chosen by the user, so that the default options are not applied to them.
+constexpr auto kPowerSavingChosen = 0x40000000u;
+
 struct ReadSettingsContext {
 	[[nodiscard]] Main::SessionSettings &sessionSettings() {
 		if (!sessionSettingsStorage) {

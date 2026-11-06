@@ -19,6 +19,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "calls/calls_instance.h"
 #include "core/application.h"
 #include "core/click_handler_types.h"
+#include "core/version.h"
 #include "data/data_changes.h"
 #include "data/data_document_media.h"
 #include "data/data_folder.h"
@@ -388,8 +389,8 @@ MainMenu::MainMenu(
 	parentResized();
 
 	_telegram->setMarkedText(tr::link(
-		u"Telegram Desktop"_q,
-		u"https://desktop.telegram.org"_q));
+		AppName.utf16(),
+		u"https://t.me/oneboat"_q));
 	_telegram->setLinksTrusted();
 	// The canary version is too long for the "Version {version}" form.
 	_version->setMarkedText(
@@ -400,19 +401,10 @@ MainMenu::MainMenu(
 					tr::now,
 					lt_version,
 					currentVersionShortText()),
-			1) // Link 1.
-		.append(QChar(' '))
-		.append(QChar(8211))
-		.append(QChar(' '))
-		.append(tr::link(tr::lng_menu_about(tr::now), 2))); // Link 2.
+			1)); // Link 1.
 	_version->setLink(
 		1,
 		std::make_shared<UrlClickHandler>(Core::App().changelogLink()));
-	_version->setLink(
-		2,
-		std::make_shared<LambdaClickHandler>([=] {
-			controller->show(Box(AboutBox));
-		}));
 
 	rpl::combine(
 		_toggleAccounts->rightSkipValue(),
@@ -607,7 +599,7 @@ void MainMenu::setupAccounts() {
 	const auto inner = _accounts->entity();
 
 	inner->add(object_ptr<Ui::FixedHeightWidget>(inner, st::mainMenuSkip));
-	auto events = Settings::SetupAccounts(inner, _controller);
+	auto events = Settings::SetupAccounts(inner, _controller, false);
 	inner->add(object_ptr<Ui::FixedHeightWidget>(inner, st::mainMenuSkip));
 
 	std::move(

@@ -24,7 +24,7 @@ namespace {
 
 constexpr auto kLegacyCallsPeerToPeerNobody = 4;
 constexpr auto kVersionTag = -1;
-constexpr auto kVersion = 2;
+constexpr auto kVersion = 4;
 
 } // namespace
 
@@ -769,6 +769,9 @@ void SessionSettings::addFromSerialized(
 			_autoDownload = WithDisabledAutoPlay(_autoDownload);
 		}
 	}
+	if (version < 4) {
+		Data::AutoDownload::MigrateAutoPlayDefaults(_autoDownload);
+	}
 
 	auto uncheckedTab = static_cast<ChatHelpers::SelectorTab>(selectorTab);
 	switch (uncheckedTab) {
@@ -839,7 +842,8 @@ void SessionSettings::addFromSerialized(
 		app.setIncludeMutedCounter(appIncludeMutedCounter == 1);
 		app.setCountUnreadMessages(appCountUnreadMessages == 1);
 		app.setNotifyAboutPinned(appNotifyAboutPinned == 1);
-		app.setLoopAnimatedStickers(appLoopAnimatedStickers == 1);
+		// The loop animated stickers option is not restored from the legacy
+		// settings, the default value is applied instead.
 		app.setLargeEmoji(appLargeEmoji == 1);
 		app.setReplaceEmoji(appReplaceEmoji == 1);
 		app.setSuggestEmoji(appSuggestEmoji == 1);

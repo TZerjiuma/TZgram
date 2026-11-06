@@ -409,7 +409,7 @@ void Application::run() {
 	) | rpl::then(
 		_domain->accountsChanges()
 	) | rpl::map([=] {
-		return (_domain->accounts().size() > Main::Domain::kMaxAccounts)
+		return (_domain->accounts().size() > Main::Domain::kAccountsLimit)
 			? _domain->activeChanges()
 			: rpl::never<not_null<Main::Account*>>();
 	}) | rpl::flatten_latest(
@@ -971,6 +971,7 @@ void Application::badMtprotoConfigurationError(const MTP::ProxyData &proxy) {
 
 void Application::startLocalStorage() {
 	Ui::GL::DetectLastCheckCrash();
+	PowerSaving::SetDefault();
 	Local::start();
 	_saveSettingsTimer.emplace([=] { saveSettings(); });
 	settings().saveDelayedRequests() | rpl::on_next([=] {
@@ -2128,7 +2129,7 @@ void Application::RegisterUrlScheme() {
 		.executable = Platform::ExecutablePathForShortcuts(),
 		.arguments = arguments,
 		.protocol = u"tg"_q,
-		.protocolName = u"Telegram Link"_q,
+		.protocolName = u"TZgram Link"_q,
 		.shortAppName = u"tdesktop"_q,
 		.longAppName = QCoreApplication::applicationName(),
 		.displayAppName = AppName.utf16(),

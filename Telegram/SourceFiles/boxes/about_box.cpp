@@ -9,6 +9,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "base/platform/base_platform_info.h"
 #include "core/application.h"
+#include "core/branding.h"
 #include "core/file_utilities.h"
 #include "core/update_channel.h"
 #include "core/update_checker.h"
@@ -27,6 +28,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "styles/style_chat.h"
 #include "styles/style_dialogs.h"
 #include "styles/style_menu_icons.h"
+#include "styles/style_widgets.h"
 #include "styles/style_premium.h"
 #include "styles/style_settings.h"
 
@@ -62,10 +64,17 @@ rpl::producer<TextWithEntities> Text3() {
 		tr::marked);
 }
 
+TextWithEntities BrandingText() {
+	auto result = tr::marked(Branding::Title());
+	result.append(QChar('\n'));
+	result.append(Branding::Text());
+	return result;
+}
+
 } // namespace
 
 void AboutBox(not_null<Ui::GenericBox*> box) {
-	box->setTitle(u"Telegram Desktop"_q);
+	box->setTitle(AppName.utf16());
 
 	auto layout = box->verticalLayout();
 
@@ -107,7 +116,7 @@ void AboutBox(not_null<Ui::GenericBox*> box) {
 			box->getDelegate()->show(
 				Ui::MakeInformBox(
 					"The link to the current private alpha "
-					"version of Telegram Desktop was copied "
+					"version of TZgram was copied "
 					"to the clipboard."));
 		} else {
 			File::OpenUrl(Core::App().changelogLink());
@@ -115,6 +124,17 @@ void AboutBox(not_null<Ui::GenericBox*> box) {
 	});
 
 	Ui::AddSkip(layout, st::aboutTopSkip);
+
+	const auto branding = layout->add(
+		object_ptr<Ui::FlatLabel>(
+			box,
+			rpl::single(BrandingText()),
+			st::aboutBrandingLabel,
+			st::defaultPopupMenu,
+			Branding::Context()),
+		st::boxRowPadding);
+	branding->setLinksTrusted();
+	Ui::AddSkip(layout, st::aboutSkip);
 
 	const auto addText = [&](rpl::producer<TextWithEntities> text) {
 		const auto label = layout->add(

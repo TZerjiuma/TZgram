@@ -1352,14 +1352,6 @@ void BuildBadgeCounterSection(SectionBuilder &builder) {
 		.keywords = { u"muted"_q, u"folders"_q },
 	}) : nullptr;
 
-	const auto count = builder.addButton({
-		.id = u"notifications/count-unread-messages"_q,
-		.title = tr::lng_settings_count_unread(),
-		.st = &st::settingsButtonNoIcon,
-		.toggled = rpl::single(settings.countUnreadMessages()),
-		.keywords = { u"unread"_q, u"messages"_q, u"count"_q },
-	});
-
 	const auto changed = [=](ChangeType change) {
 		Core::App().saveSettingsDelayed();
 		Core::App().notifications().notifySettingsChanged(change);
@@ -1384,16 +1376,6 @@ void BuildBadgeCounterSection(SectionBuilder &builder) {
 			Core::App().settings().setIncludeMutedCounterFolders(checked);
 			changed(ChangeType::IncludeMuted);
 		}, mutedFolders->lifetime());
-	}
-
-	if (count) {
-		count->toggledChanges(
-		) | rpl::filter([=](bool checked) {
-			return (checked != Core::App().settings().countUnreadMessages());
-		}) | rpl::on_next([=](bool checked) {
-			Core::App().settings().setCountUnreadMessages(checked);
-			changed(ChangeType::CountMessages);
-		}, count->lifetime());
 	}
 }
 

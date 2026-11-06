@@ -159,6 +159,9 @@ aboutLabel: FlatLabel(defaultFlatLabel) {
 		lineHeight: 22px;
 	}
 }
+aboutBrandingLabel: FlatLabel(aboutLabel) {
+	margin: margins(0px, 0px, 0px, 16px);
+}
 
 autoDownloadTitleFont: font(15px semibold);
 autoDownloadLimitSlider: MediaSlider(defaultContinuousSlider) {

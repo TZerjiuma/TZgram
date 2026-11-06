@@ -212,7 +212,8 @@ class AccountsList final {
 public:
 	AccountsList(
 		not_null<Ui::VerticalLayout*> container,
-		not_null<Window::SessionController*> controller);
+		not_null<Window::SessionController*> controller,
+		bool withAddAccount);
 
 	[[nodiscard]] rpl::producer<> closeRequests() const;
 	[[nodiscard]] Ui::RpWidget *addAccountButton() const;
@@ -226,6 +227,7 @@ private:
 	const not_null<Window::SessionController*> _controller;
 	const not_null<Ui::VerticalLayout*> _outer;
 	int _outerIndex = 0;
+	const bool _withAddAccount;
 
 	Ui::SlideWrap<Ui::SettingsButton> *_addAccount = nullptr;
 	base::flat_map<
@@ -950,10 +952,12 @@ void SetupAccountsWrap(
 
 AccountsList::AccountsList(
 	not_null<Ui::VerticalLayout*> container,
-	not_null<Window::SessionController*> controller)
+	not_null<Window::SessionController*> controller,
+	bool withAddAccount)
 : _controller(controller)
 , _outer(container)
-, _outerIndex(container->count()) {
+, _outerIndex(container->count())
+, _withAddAccount(withAddAccount) {
 	setup();
 }
 
@@ -966,7 +970,9 @@ Ui::RpWidget *AccountsList::addAccountButton() const {
 }
 
 void AccountsList::setup() {
-	_addAccount = setupAdd();
+	if (_withAddAccount) {
+		_addAccount = setupAdd();
+	}
 
 	rpl::single(rpl::empty) | rpl::then(
 		Core::App().domain().accountsChanges()
@@ -1447,10 +1453,12 @@ Type InformationId() {
 
 AccountsEvents SetupAccounts(
 		not_null<Ui::VerticalLayout*> container,
-		not_null<Window::SessionController*> controller) {
+		not_null<Window::SessionController*> controller,
+		bool withAddAccount) {
 	const auto list = container->lifetime().make_state<AccountsList>(
 		container,
-		controller);
+		controller,
+		withAddAccount);
 	return {
 		.closeRequests = list->closeRequests(),
 		.addAccountButton = list->addAccountButton(),

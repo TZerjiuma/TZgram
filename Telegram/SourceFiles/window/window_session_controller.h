@@ -114,6 +114,7 @@ class SectionMemento;
 class SectionWidget;
 class Controller;
 class FiltersMenu;
+class AccountsRail;
 class ChatPreviewManager;
 class ChatSwitchProcess;
 
@@ -657,6 +658,7 @@ public:
 	}
 
 	[[nodiscard]] int filtersWidth() const;
+	[[nodiscard]] int accountsRailWidth() const;
 	[[nodiscard]] bool enoughSpaceForFilters() const;
 	[[nodiscard]] rpl::producer<bool> enoughSpaceForFiltersValue() const;
 	[[nodiscard]] rpl::producer<FilterId> activeChatsFilter() const;
@@ -851,6 +853,7 @@ private:
 
 	std::unique_ptr<Passport::FormController> _passportForm;
 	std::unique_ptr<FiltersMenu> _filters;
+	std::unique_ptr<AccountsRail> _accountsRail;
 
 	GifPauseReasons _gifPauseReasons = 0;
 	rpl::event_stream<> _gifPauseLevelChanged;

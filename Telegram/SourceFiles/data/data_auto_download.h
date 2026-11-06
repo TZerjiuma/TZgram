@@ -120,6 +120,7 @@ private:
 
 void SetDefaultsForSource(Full &data, Source source);
 void SetDisabledForSource(Full &data, Source source);
+void MigrateAutoPlayDefaults(Full &data);
 [[nodiscard]] bool HasEnabledTypes(const Full &data, Source source);
 
 [[nodiscard]] bool Should(

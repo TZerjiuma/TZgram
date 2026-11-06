@@ -1252,7 +1252,11 @@ void Settings::addFromSerialized(
 	}
 	_ipRevealWarning = (ipRevealWarning == 1);
 	_notifyAboutPinned = (notifyAboutPinned == 1);
-	_loopAnimatedStickers = (loopAnimatedStickers == 1);
+	// The stored value is applied only if the user has chosen the option,
+	// otherwise animated stickers are not looped by default.
+	_loopAnimatedStickers = readPref<bool>(kLoopAnimatedStickersChosenKey)
+		? (loopAnimatedStickers == 1)
+		: false;
 	_largeEmoji = (largeEmoji == 1);
 	_replaceEmoji = (replaceEmoji == 1);
 	_systemTextReplace = (systemTextReplace == 1);
@@ -1488,6 +1492,11 @@ void Settings::addFromSerialized(
 	_chatFiltersHorizontal = (chatFiltersHorizontal == 1);
 	_quickDialogAction = Dialogs::Ui::QuickDialogAction(quickDialogAction);
 	_notificationsVolume = notificationsVolume;
+}
+
+void Settings::setLoopAnimatedStickers(bool value) {
+	_loopAnimatedStickers = value;
+	writePref<bool>(kLoopAnimatedStickersChosenKey, true);
 }
 
 void Settings::clearPref(std::string_view key) {
@@ -1914,7 +1923,7 @@ void Settings::resetOnLastLogout() {
 
 	_noWarningExtensions.clear();
 	_ipRevealWarning = true;
-	_loopAnimatedStickers = true;
+	_loopAnimatedStickers = false;
 	_largeEmoji = true;
 	_replaceEmoji = true;
 	_systemTextReplace = true;

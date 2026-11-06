@@ -39,6 +39,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "styles/style_intro.h"
 #include "styles/style_window.h"
 
+#include <QtGui/QImage>
+
 namespace Intro {
 namespace details {
 namespace {
@@ -54,6 +56,11 @@ void PrepareSupportMode(not_null<Main::Session*> session) {
 
 	session->settings().autoDownload() = Full::FullDisabled();
 	session->saveSettings();
+}
+
+const QImage &CoverLogo() {
+	static const auto result = QImage(u":/gui/art/logo_256.png"_q);
+	return result;
 }
 
 } // namespace
@@ -77,6 +84,7 @@ Step::Step(
 		_hasCover
 			? st::introCoverDescription
 			: st::introDescription)) {
+	_description->entity()->setLinksTrusted();
 	hide();
 	style::PaletteChanged(
 	) | rpl::on_next([=] {
@@ -105,7 +113,7 @@ Step::Step(
 			text.entities,
 			EntityType::Spoiler,
 			&EntityInText::type);
-		label->setMarkedText(text);
+		label->setMarkedText(text, _descriptionContext);
 		label->setAttribute(Qt::WA_TransparentForMouseEvents, hasSpoiler);
 		accessibilityDescriptionChanged();
 		updateLabelsPosition();
@@ -222,13 +230,10 @@ void Step::createSession(
 		QImage photo,
 		const QVector<MTPDialogFilter> &filters,
 		bool tagsEnabled) {
-	// Save the default language if we've suggested some other and user ignored it.
+	// Switch to Simplified Chinese when the user hasn't chosen a language yet.
 	const auto currentId = Lang::Id();
-	const auto defaultId = Lang::DefaultLanguageId();
-	const auto suggested = Lang::CurrentCloudManager().suggestedLanguage();
-	if (currentId.isEmpty() && !suggested.isEmpty() && suggested != defaultId) {
-		Lang::GetInstance().switchToId(Lang::DefaultLanguage());
-		Local::writeLangPack();
+	if (currentId.isEmpty()) {
+		Lang::CurrentCloudManager().switchToLanguage(u"zh-hans"_q);
 	}
 
 	auto settings = std::make_unique<Main::SessionSettings>();
@@ -298,7 +303,10 @@ void Step::setTitleText(rpl::producer<QString> titleText) {
 	_titleText = std::move(titleText);
 }
 
-void Step::setDescriptionText(v::text::data &&descriptionText) {
+void Step::setDescriptionText(
+		v::text::data &&descriptionText,
+		Ui::Text::MarkedContext context) {
+	_descriptionContext = std::move(context);
 	_descriptionText = v::text::take_marked(std::move(descriptionText));
 }
 
@@ -466,16 +474,18 @@ void Step::paintCover(QPainter &p, int top) {
 	st::introCoverLeft.paint(p, left, coverHeight - st::introCoverLeft.height(), width());
 	st::introCoverRight.paint(p, width() - right - st::introCoverRight.width(), coverHeight - st::introCoverRight.height(), width());
 
-	auto planeLeft = (width() - st::introCoverIcon.width()) / 2 - st::introCoverIconLeft;
-	auto planeTop = top + st::introCoverIconTop;
+	auto logoLeft = (width() - st::introCoverLogoSize) / 2;
+	auto logoTop = top + st::introCoverLogoTop;
 	if (top < 0 && !_hasCover) {
-		const auto ratio = float64(st::introPlaneWidth / st::introPlaneHeight);
-		auto deltaLeft = -int(base::SafeRound(ratio * top));
-//		auto deltaTop = top;
-		planeLeft += deltaLeft;
-	//	planeTop += top;
+		logoLeft -= top;
 	}
-	st::introCoverIcon.paint(p, planeLeft, planeTop, width());
+	p.drawImage(
+		QRect(
+			logoLeft,
+			logoTop,
+			st::introCoverLogoSize,
+			st::introCoverLogoSize),
+		CoverLogo());
 }
 
 int Step::contentLeft() const {

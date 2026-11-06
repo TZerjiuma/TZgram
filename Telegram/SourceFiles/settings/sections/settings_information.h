@@ -9,6 +9,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "settings/settings_type.h"
 
+#include <QtCore/QPointer>
+
 class UserData;
 
 namespace Ui {
@@ -36,7 +38,8 @@ struct AccountsEvents {
 };
 AccountsEvents SetupAccounts(
 	not_null<Ui::VerticalLayout*> container,
-	not_null<Window::SessionController*> controller);
+	not_null<Window::SessionController*> controller,
+	bool withAddAccount = true);
 
 void UpdatePhotoLocally(not_null<UserData*> user, const QImage &image);
 

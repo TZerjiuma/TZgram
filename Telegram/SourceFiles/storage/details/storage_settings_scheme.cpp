@@ -241,7 +241,16 @@ bool ReadSetting(
 			return false;
 		}
 
-		PowerSaving::Set(PowerSaving::Flags::from_raw(settings));
+		const auto raw = static_cast<uint32>(settings);
+		const auto chosen = (raw & kPowerSavingChosen) != 0;
+		const auto flags = PowerSaving::Flags::from_raw(raw)
+			& PowerSaving::kAll;
+		// Options that were never chosen by the user keep the default ones.
+		PowerSaving::Set(
+			(chosen || flags.value() != 0)
+				? flags
+				: PowerSaving::Flags(PowerSaving::kAll),
+			chosen);
 	} break;
 
 	case dbiSoundFlashBounceNotifyOld: {
@@ -687,8 +696,8 @@ bool ReadSetting(
 		stream >> v;
 		if (!CheckStreamStatus(stream)) return false;
 
-		cSetAutoUpdate(v == 1);
-		if (!Core::UpdaterDisabled() && !cAutoUpdate()) {
+		cSetAutoUpdate(false);
+		if (!Core::UpdaterDisabled()) {
 			Core::UpdateChecker().stop();
 		}
 	} break;

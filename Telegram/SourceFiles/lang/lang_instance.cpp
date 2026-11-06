@@ -8,6 +8,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "lang/lang_instance.h"
 
 #include "core/application.h"
+#include "core/version.h"
 #include "storage/serialize_common.h"
 #include "storage/localstorage.h"
 #include "ui/boxes/confirm_box.h"
@@ -26,6 +27,98 @@ constexpr auto kSerializeVersion = 1;
 constexpr auto kCloudLangPackName = "tdesktop"_cs;
 constexpr auto kCustomLanguage = "#custom"_cs;
 constexpr auto kLangValuesLimit = 20000;
+
+// Fork-specific translations for the strings that are not present in the
+// cloud language packs yet. They are applied on top of the values received
+// from the cloud, for the specified language ids only.
+struct ForkTranslation {
+	const char *language;
+	const char *key;
+	const char *value;
+};
+
+constexpr ForkTranslation kForkTranslations[] = {
+	{
+		"zh",
+		"lng_settings_contact_developer",
+		"联系开发者"
+	}
+};
+
+[[nodiscard]] bool IsForkTranslationLanguage(
+		const QString &id,
+		const char *language) {
+	const auto languageId = QLatin1String(language);
+	return (id == languageId)
+		|| (id.startsWith(languageId)
+			&& id.size() > languageId.size()
+			&& id[languageId.size()] == u'-');
+}
+
+// Fork-specific: the strings that mention this application by name are not
+// translated by us, they are downloaded from the cloud language packs, so the
+// name of the application is substituted in them for every language.
+
+// The keys of the strings that mention this application by name.
+const char *kForkAppNameKeys[] = {
+	"lng_open_from_tray",
+	"lng_quit_from_tray",
+	"lng_tray_icon_text",
+	"lng_update_telegram",
+	"lng_intro_about",
+	"lng_settings_auto_start",
+	"lng_settings_auto_start_disabled_uwp",
+	"lng_settings_add_sendto",
+	"lng_settings_color_link_name",
+	"lng_local_storage_device_telegram",
+	"lng_local_storage_device_usage",
+	"lng_download_path_default_radio",
+	"lng_settings_passcode_lock_app",
+	"lng_passcode_about",
+	"lng_passcode_about1",
+	"lng_passcode_about2",
+	"lng_passcode_about3",
+	"lng_passcode_unlock_about",
+	"lng_passcode_winhello_unlock",
+	"lng_settings_use_winhello_about",
+	"lng_settings_use_touchid_about",
+	"lng_settings_use_applewatch_about",
+	"lng_settings_use_systempwd_about",
+	"lng_settings_export_data",
+	"lng_new_version_wrap",
+	"lng_proxy_unsupported",
+	"lng_proxy_sponsor_about",
+	"lng_theme_no_desktop",
+	"lng_error_start_minimized_passcoded",
+	"lng_outdated_soon",
+	"lng_outdated_now",
+	"lng_settings_passkeys_unsigned_error",
+	"lng_language_not_ready_about",
+	"lng_screen_reader_bar_text",
+	"lng_screen_reader_confirm_text",
+	"lng_bot_share_location_unavailable",
+	"lng_message_unsupported",
+	"lng_unsupported_message_text",
+	"lng_unsupported_block_text",
+	"lng_terms_delete_warning",
+	"lng_group_call_mac_access",
+	"lng_group_call_mac_screencast_access",
+	"lng_wallet_protection_open_warning_lock",
+	"lng_wallet_protection_create_about",
+	"lng_export_progress",
+	"lng_sure_save_language",
+};
+
+[[nodiscard]] QString SubstituteForkAppName(const QString &text) {
+	// Replace the name of the application, but keep it untouched when it is
+	// a part of a link or of a username (like telegram.org or @telegram).
+	static const auto re = QRegularExpression(
+		u"(?<![@.\\w])Telegram(?:[ ]+Desktop)?(?![.\\w])"_q,
+		QRegularExpression::CaseInsensitiveOption);
+	auto result = text;
+	result.replace(re, AppName.utf16());
+	return result;
+}
 
 std::vector<QString> PrepareDefaultValues() {
 	auto result = std::vector<QString>();
@@ -300,8 +393,49 @@ void Instance::reset(const Language &data) {
 	}
 	ranges::fill(_nonDefaultSet, 0);
 	updateChoosingStickerReplacement();
+	updateForkTranslations();
 
 	_idChanges.fire_copy(_id);
+}
+
+void Instance::updateForkTranslations() {
+	if (_derived) {
+		// Only the current language instance holds the shown values.
+		_derived->updateForkTranslations();
+		return;
+	}
+	for (const auto &[index, key] : _forkTranslated) {
+		if (size_t(index) < _values.size()) {
+			const auto nonDefault = getNonDefaultValue(key);
+			_values[index] = nonDefault.isEmpty()
+				? GetOriginalValue(index)
+				: nonDefault;
+		}
+	}
+	_forkTranslated.clear();
+	for (const auto &translation : kForkTranslations) {
+		if (!IsForkTranslationLanguage(_id, translation.language)) {
+			continue;
+		}
+		const auto index = GetKeyIndex(QLatin1String(translation.key));
+		if (index == kKeysCount) {
+			continue;
+		}
+		_values[index] = QString::fromUtf8(translation.value);
+		_forkTranslated.emplace(index, QByteArray(translation.key));
+	}
+	for (const auto &key : kForkAppNameKeys) {
+		const auto index = GetKeyIndex(QLatin1String(key));
+		if (index == kKeysCount) {
+			continue;
+		}
+		const auto nonDefault = getNonDefaultValue(key);
+		const auto original = nonDefault.isEmpty()
+			? GetOriginalValue(index)
+			: nonDefault;
+		_values[index] = SubstituteForkAppName(original);
+		_forkTranslated.emplace(index, QByteArray(key));
+	}
 }
 
 QString Instance::systemLangCode() const {
@@ -546,6 +680,7 @@ void Instance::fillFromSerialized(
 	}
 	updatePluralRules();
 	updateChoosingStickerReplacement();
+	updateForkTranslations();
 
 	_idChanges.fire_copy(_id);
 }
@@ -559,6 +694,7 @@ void Instance::loadFromContent(const QByteArray &content) {
 	} else if (!loader.warnings().isEmpty()) {
 		LOG(("Lang load warnings: %1").arg(loader.warnings()));
 	}
+	updateForkTranslations();
 }
 
 void Instance::fillFromCustomContent(
@@ -694,6 +830,7 @@ void Instance::applyDifferenceToMe(
 			resetValue(key);
 		});
 	}
+	updateForkTranslations();
 	if (!_derived) {
 		_updated.fire({});
 	} else {

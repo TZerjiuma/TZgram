@@ -11,12 +11,14 @@ namespace PowerSaving {
 namespace {
 
 Flags Data/* = {}*/;
+bool Chosen/* = false*/;
 rpl::event_stream<> Events;
 bool AllForced/* = false*/;
 
 } // namespace
 
-void Set(Flags flags) {
+void Set(Flags flags, bool chosen) {
+	Chosen = chosen;
 	if (const auto diff = Data ^ flags) {
 		Data = flags;
 		if (!AllForced) {
@@ -28,8 +30,16 @@ void Set(Flags flags) {
 	}
 }
 
+void SetDefault() {
+	Set(kAll, false);
+}
+
 Flags Current() {
 	return Data;
+}
+
+bool UserChosen() {
+	return Chosen;
 }
 
 void SetForceAll(bool force) {

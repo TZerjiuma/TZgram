@@ -227,6 +227,19 @@ createThemeLink: InputField(defaultInputField) {
 }
 
 windowFiltersWidth: 72px;
+windowAccountsRailWidth: 64px;
+windowAccountsRailPhoto: 36px;
+windowAccountsRailLine: 2px;
+windowAccountsRailSkip: 6px;
+windowAccountsRailGap: 8px;
+windowAccountsRailTop: 12px;
+windowAccountsRailBottom: 12px;
+windowAccountsRailAddSize: 14px;
+windowAccountsRailBg: sideBarBg;
+windowAccountsRailHover: sideBarBgActive;
+windowAccountsRailActive: windowBgActive;
+windowAccountsRailAddBg: sideBarBgActive;
+windowAccountsRailAddFg: windowBgActive;
 windowFiltersButton: SideBarButton(defaultSideBarButton) {
 	textTop: 40px;
 	textSkip: 6px;

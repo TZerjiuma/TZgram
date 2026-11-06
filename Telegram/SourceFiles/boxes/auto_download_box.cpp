@@ -32,7 +32,7 @@ namespace {
 
 constexpr auto kMegabyte = 1024 * 1024;
 constexpr auto kDefaultDownloadLimit = 10 * kMegabyte;
-constexpr auto kDefaultAutoPlayLimit = 50 * kMegabyte;
+constexpr auto kDefaultAutoPlayLimit = 1 * kMegabyte;
 
 using Type = Data::AutoDownload::Type;
 using Source = Data::AutoDownload::Source;

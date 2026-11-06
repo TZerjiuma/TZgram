@@ -39,6 +39,8 @@ namespace Core {
 
 inline constexpr auto kScreenReaderModeDisabledKey
 	= "screen-reader-mode-disabled"_cs;
+inline constexpr auto kLoopAnimatedStickersChosenKey
+	= "loop-animated-stickers-chosen"_cs;
 
 struct WindowPosition {
 	int32 moncrc = 0;
@@ -264,7 +266,9 @@ public:
 		_includeMutedCounterFolders = value;
 	}
 	[[nodiscard]] bool countUnreadMessages() const {
-		return _countUnreadMessages;
+		// Unread messages are never counted in the badges, only unread
+		// chats, so that big groups don't show huge numbers.
+		return false;
 	}
 	void setCountUnreadMessages(bool value) {
 		_countUnreadMessages = value;
@@ -446,9 +450,7 @@ public:
 	[[nodiscard]] bool loopAnimatedStickers() const {
 		return _loopAnimatedStickers;
 	}
-	void setLoopAnimatedStickers(bool value) {
-		_loopAnimatedStickers = value;
-	}
+	void setLoopAnimatedStickers(bool value);
 	void setLargeEmoji(bool value) {
 		_largeEmoji = value;
 	}
@@ -718,7 +720,9 @@ public:
 		_nativeWindowFrame = value;
 	}
 	[[nodiscard]] bool nativeWindowFrame() const {
-		return _nativeWindowFrame.current();
+		// The system window frame is disabled, the custom title bar
+		// is always used.
+		return false;
 	}
 	[[nodiscard]] rpl::producer<bool> nativeWindowFrameChanges() const {
 		return _nativeWindowFrame.changes();
@@ -1122,7 +1126,7 @@ private:
 	base::flat_map<QString, QString> _soundOverrides;
 	base::flat_set<QString> _noWarningExtensions;
 	bool _ipRevealWarning = true;
-	bool _loopAnimatedStickers = true;
+	bool _loopAnimatedStickers = false;
 	rpl::variable<bool> _largeEmoji = true;
 	rpl::variable<bool> _replaceEmoji = true;
 	rpl::variable<bool> _systemTextReplace = true;

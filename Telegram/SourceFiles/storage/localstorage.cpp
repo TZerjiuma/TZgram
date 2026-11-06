@@ -475,7 +475,8 @@ void writeSettings() {
 	}
 	size += sizeof(quint32) + sizeof(qint32) * 8;
 
-	const auto powerSaving = PowerSaving::Current().value();
+	const auto powerSaving = PowerSaving::Current().value()
+		| (PowerSaving::UserChosen() ? kPowerSavingChosen : 0);
 
 	EncryptedDescriptor data(size);
 	data.stream << quint32(dbiAutoStart) << qint32(cAutoStart());

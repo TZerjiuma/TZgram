@@ -376,6 +376,8 @@ void BuildWindowTitleSection(SectionBuilder &builder) {
 		}, showTotalUnread->lifetime());
 	}
 
+	// The system window frame is disabled, the custom title bar is used.
+	/*
 	if (Ui::Platform::NativeWindowFrameSupported()) {
 		const auto nativeFrame = builder.addCheckbox({
 			.id = u"advanced/native_frame"_q,
@@ -395,6 +397,7 @@ void BuildWindowTitleSection(SectionBuilder &builder) {
 			}, nativeFrame->lifetime());
 		}
 	}
+	*/
 
 	builder.addSkip();
 }
@@ -1623,6 +1626,8 @@ void SetupWindowTitleContent(
 		}, showTotalUnread->lifetime());
 	}
 
+	// The system window frame is disabled, the custom title bar is used.
+	/*
 	if (Ui::Platform::NativeWindowFrameSupported()) {
 		const auto nativeFrame = addCheckbox(
 			Platform::IsWayland()
@@ -1638,6 +1643,7 @@ void SetupWindowTitleContent(
 			Core::App().saveSettingsDelayed();
 		}, nativeFrame->lifetime());
 	}
+	*/
 }
 
 void SetupSystemIntegrationContent(

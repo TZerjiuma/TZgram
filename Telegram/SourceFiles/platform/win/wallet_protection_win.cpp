@@ -283,7 +283,7 @@ void FocusUnownedPrompt(int attemptsLeft = kPromptFocusAttempts) {
 [[nodiscard]] bool DebugPortable() {
 #ifdef _DEBUG
 	static const auto Result = (QDir(cWorkingDir())
-		== QDir(cExeDir() + u"TelegramForcePortable"_q));
+		== QDir(cExeDir() + u"TZgramForcePortable"_q));
 	return Result;
 #else // _DEBUG
 	return false;

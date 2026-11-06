@@ -104,7 +104,10 @@ Widget::Widget(
 	_account->mtpValue(
 	) | rpl::on_next([=](not_null<MTP::Instance*> instance) {
 		_api.emplace(instance);
-		crl::on_main(this, [=] { createLanguageLink(); });
+		crl::on_main(this, [=] {
+			switchToSimplifiedChinese();
+			createLanguageLink();
+		});
 	}, lifetime());
 
 	switch (point) {
@@ -306,6 +309,15 @@ void Widget::createLanguageLink() {
 			}
 		}).send();
 	}
+}
+
+void Widget::switchToSimplifiedChinese() {
+	// Switch to Simplified Chinese before the login screen is shown,
+	// so that the app is in Chinese from the very beginning.
+	if (!Lang::Id().isEmpty()) {
+		return;
+	}
+	Lang::CurrentCloudManager().switchToLanguage(u"zh-hans"_q);
 }
 
 void Widget::checkUpdateStatus() {

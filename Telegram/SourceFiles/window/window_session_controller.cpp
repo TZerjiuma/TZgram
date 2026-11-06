@@ -17,6 +17,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "boxes/add_contact_box.h"
 #include "boxes/delete_messages_box.h"
 #include "boxes/star_gift_auction_box.h"
+#include "window/window_accounts_rail.h"
 #include "window/window_chat_preview.h"
 #include "window/window_chat_switch_process.h"
 #include "window/window_controller.h"
@@ -2052,6 +2053,11 @@ void SessionController::init() {
 	if (session().supportMode()) {
 		session().supportHelper().registerWindow(this);
 	}
+	if (_isPrimary) {
+		_accountsRail = std::make_unique<AccountsRail>(
+			widget()->bodyWidget(),
+			this);
+	}
 	session().data().drawToReplyRequests(
 	) | rpl::on_next([=](Data::DrawToReplyRequest request) {
 		handleDrawToReplyRequest(std::move(request));
@@ -2775,7 +2781,9 @@ int SessionController::minimalThreeColumnWidth() const {
 auto SessionController::computeColumnLayout() const -> ColumnLayout {
 	auto layout = Adaptive::WindowLayout::OneColumn;
 
-	auto bodyWidth = widget()->bodyWidget()->width() - filtersWidth();
+	auto bodyWidth = widget()->bodyWidget()->width()
+		- filtersWidth()
+		- accountsRailWidth();
 	auto dialogsWidth = 0, chatWidth = 0, thirdWidth = 0;
 
 	auto useOneColumnLayout = [&] {
@@ -3451,8 +3459,15 @@ int SessionController::filtersWidth() const {
 	return _filters ? st::windowFiltersWidth : 0;
 }
 
+int SessionController::accountsRailWidth() const {
+	return _accountsRail ? AccountsRail::Width() : 0;
+}
+
 bool SessionController::enoughSpaceForFilters() const {
-	return widget()->width() >= widget()->minimumWidth() + st::windowFiltersWidth;
+	return widget()->width()
+		>= widget()->minimumWidth()
+			+ st::windowFiltersWidth
+			+ accountsRailWidth();
 }
 
 rpl::producer<bool> SessionController::enoughSpaceForFiltersValue() const {

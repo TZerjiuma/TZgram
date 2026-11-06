@@ -124,6 +124,7 @@ private:
 		const QByteArray &content);
 	void updatePluralRules();
 	void updateChoosingStickerReplacement();
+	void updateForkTranslations();
 
 	Instance *_derived = nullptr;
 
@@ -147,6 +148,10 @@ private:
 	std::vector<QString> _values;
 	std::vector<uchar> _nonDefaultSet;
 	std::map<QByteArray, QByteArray> _nonDefaultValues;
+
+	// Fork-specific translations applied on top of the cloud language pack
+	// values: the key index and the key name of every overridden string.
+	std::map<ushort, QByteArray> _forkTranslated;
 
 	std::unique_ptr<Instance> _base;
 

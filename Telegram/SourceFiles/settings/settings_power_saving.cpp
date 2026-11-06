@@ -119,7 +119,9 @@ void PowerSavingBox(
 			: Core::App().settings().ignoreBatterySaving();
 		const auto batterySaving = Core::App().batterySaving().enabled();
 		if (ignore || !batterySaving.value_or(false)) {
-			Set(PowerSaving::kAll & ~collect());
+			PowerSaving::Set(
+				PowerSaving::kAll & ~collect(),
+				/*chosen=*/true);
 		}
 		Core::App().settings().setIgnoreBatterySavingValue(ignore);
 		Core::App().saveSettingsDelayed();

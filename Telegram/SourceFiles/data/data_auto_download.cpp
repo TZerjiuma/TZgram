@@ -17,8 +17,10 @@ namespace Data {
 namespace AutoDownload {
 namespace {
 
-constexpr auto kDefaultMaxSize = 8 * int64(1024 * 1024);
-constexpr auto kDefaultAutoPlaySize = 50 * int64(1024 * 1024);
+constexpr auto kDefaultMaxSize = int64(1024 * 1024);
+// Autoplay of GIFs, videos and video messages is limited to 1 MB by default,
+// because animated media consumes a lot of memory.
+constexpr auto kDefaultAutoPlaySize = int64(1024 * 1024);
 constexpr auto kVersion1 = char(1);
 constexpr auto kVersion2 = char(2);
 constexpr auto kVersion = char(3);
@@ -95,17 +97,26 @@ void SetDefaultsForSource(Full &data, Source source) {
 		Type::AutoPlayVideoMessage,
 		kDefaultAutoPlaySize);
 	data.setBytesLimit(source, Type::AutoPlayGIF, kDefaultAutoPlaySize);
-	const auto channelsFileLimit = (source == Source::Channel)
-		? 0
-		: kDefaultMaxSize;
-	data.setBytesLimit(source, Type::File, channelsFileLimit);
+	data.setBytesLimit(source, Type::File, 0);
 	data.setBytesLimit(source, Type::AutoPlayVideo, kDefaultAutoPlaySize);
-	data.setBytesLimit(source, Type::Music, channelsFileLimit);
+	data.setBytesLimit(source, Type::Music, kDefaultMaxSize);
 }
 
 void SetDisabledForSource(Full &data, Source source) {
 	for (const auto type : enums_view<Type>(kTypesCount)) {
 		data.setBytesLimit(source, type, 0);
+	}
+}
+
+void MigrateAutoPlayDefaults(Full &data) {
+	for (const auto source : enums_view<Source>(kSourcesCount)) {
+		for (const auto type : kAutoPlayTypes) {
+			// Autoplay used to be disabled by default, now it is limited
+			// to kDefaultAutoPlaySize instead.
+			if (data.bytesLimit(source, type) == 0) {
+				data.setBytesLimit(source, type, kDefaultAutoPlaySize);
+			}
+		}
 	}
 }
 
@@ -303,9 +314,8 @@ bool Full::setFromSerialized(const QByteArray &serialized) {
 	if (version == kVersion1) {
 		for (const auto source : enums_view<Source>(kSourcesCount)) {
 			for (const auto type : kAutoPlayTypes) {
-				temp.setBytesLimit(source, type, std::max(
-					temp.bytesLimit(source, type),
-					kDefaultAutoPlaySize));
+				// The old download limits don't apply to autoplay.
+				temp.setBytesLimit(source, type, kDefaultAutoPlaySize);
 			}
 		}
 	}

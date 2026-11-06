@@ -143,7 +143,8 @@ void FiltersMenu::setup() {
 	_parent->heightValue(
 	) | rpl::on_next([=](int height) {
 		const auto width = st::windowFiltersWidth;
-		_outer.setGeometry({ 0, 0, width, height });
+		const auto left = _session->accountsRailWidth();
+		_outer.setGeometry({ left, 0, width, height });
 		_menu.resizeToWidth(width);
 		_menu.move(0, 0);
 		_scroll.setGeometry(

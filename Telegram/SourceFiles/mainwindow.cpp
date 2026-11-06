@@ -759,6 +759,10 @@ void MainWindow::updateControlsGeometry() {
 	auto mainLeft = 0;
 	auto mainWidth = body.width();
 	if (const auto session = sessionController()) {
+		if (const auto skip = session->accountsRailWidth()) {
+			mainLeft += skip;
+			mainWidth -= skip;
+		}
 		if (const auto skip = session->filtersWidth()) {
 			mainLeft += skip;
 			mainWidth -= skip;

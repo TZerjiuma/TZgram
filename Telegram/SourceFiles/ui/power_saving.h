@@ -27,8 +27,12 @@ enum Flag : uint32 {
 inline constexpr bool is_flag_type(Flag) { return true; }
 using Flags = base::flags<Flag>;
 
-void Set(Flags flags);
+// The chosen argument marks the options as explicitly chosen by the user.
+void Set(Flags flags, bool chosen);
 [[nodiscard]] Flags Current();
+
+void SetDefault();
+[[nodiscard]] bool UserChosen();
 
 void SetForceAll(bool force);
 [[nodiscard]] bool ForceAll();

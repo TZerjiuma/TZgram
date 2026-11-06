@@ -15,14 +15,8 @@ introCoverMaxWidth: 880px;
 introCoverIconsMinSkip: 120px;
 introCoverLeft: icon {{ "intro_left", introCoverIconsFg }};
 introCoverRight: icon {{ "intro_right", introCoverIconsFg }};
-introCoverIcon: icon {
-	{ "intro_plane_trace", introCoverPlaneTrace },
-	{ "intro_plane_inner", introCoverPlaneInner },
-	{ "intro_plane_outer", introCoverPlaneOuter },
-	{ "intro_plane_top", introCoverPlaneTop },
-};
-introCoverIconLeft: 50px;
-introCoverIconTop: 46px;
+introCoverLogoSize: 96px;
+introCoverLogoTop: 44px;
 
 introSettingsSkip: 10px;
 
@@ -39,6 +33,7 @@ introCoverTitleTop: 136px;
 introCoverDescription: FlatLabel(defaultFlatLabel) {
 	textFg: introDescriptionFg;
 	align: align(center);
+	margin: margins(0px, 0px, 0px, 16px);
 	style: TextStyle(defaultTextStyle) {
 		font: font(15px);
 		lineHeight: 24px;
@@ -63,8 +58,6 @@ introDescriptionTop: 34px;
 
 introLink: defaultLinkButton;
 
-introPlaneWidth: 48px;
-introPlaneHeight: 38px;
 introHeight: 406px;
 introStepTopMin: 76px;
 introStepWidth: 380px;

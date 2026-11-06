@@ -1,10 +1,18 @@
-#define MyAppShortName "Telegram"
-#define MyAppName "Telegram Desktop"
-#define MyAppPublisher "Telegram FZ-LLC"
-#define MyAppURL "https://desktop.telegram.org"
-#define MyAppExeName "Telegram.exe"
+#define MyAppShortName "TZgram"
+#define MyAppName "TZgram"
+#define MyAppPublisher "ONEBOAT"
+#define MyAppURL "https://t.me/oneboat"
+#define MyAppExeName "TZgram.exe"
 #define MyAppId "53F49750-6209-4FBF-9CA8-7A333C87D1ED"
 #define CurrentYear GetDateTimeString('yyyy','','')
+
+; Path to the public certificate (.cer) of our Authenticode signature. It is
+; passed from the outside (ISCC /dTrustCertPath=...), because the signing keys
+; live outside of the repository. When it is not set, the certificate is simply
+; not installed and not trusted.
+#ifndef TrustCertPath
+  #define TrustCertPath ""
+#endif
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -24,7 +32,7 @@ AllowNoIcons=yes
 OutputDir={#ReleasePath}
 SetupIconFile={#SourcePath}..\Resources\art\icon256.ico
 UninstallDisplayName={#MyAppName}
-UninstallDisplayIcon={app}\Telegram.exe
+UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma
 SolidCompression=yes
 DisableStartupPrompt=yes
@@ -34,7 +42,9 @@ CloseApplications=force
 DisableDirPage=no
 DisableProgramGroupPage=no
 WizardStyle=modern
-SignTool=sha256
+; Note: Inno Setup 7 no longer accepts a hash algorithm here ("sha256" was the
+; Inno ECDSA setup signature and is gone), and the installer is Authenticode
+; signed with signtool.exe right after it is built.
 
 #ifndef MyOutputBaseFilename
   #if MyBuildTarget == "winarm"
@@ -64,6 +74,9 @@ OutputBaseFilename={#MyOutputBaseFilename}
 #define ModulesFolder "modules\" + ArchModulesFolder
 
 [Languages]
+; The first entry is the default when the user's system language does not
+; match any of the listed ones, so Simplified Chinese goes first.
+Name: "chinese"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "it";      MessagesFile: "compiler:Languages\Italian.isl"
 Name: "es";      MessagesFile: "compiler:Languages\Spanish.isl"
@@ -78,8 +91,14 @@ Name: "ua";      MessagesFile: "compiler:Languages\Ukrainian.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 
 [Files]
-Source: "{#ReleasePath}\Telegram.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#ReleasePath}\Updater.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#ReleasePath}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+; The updater is only built when autoupdate is enabled, so it may be missing.
+Source: "{#ReleasePath}\Updater.exe"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+#if TrustCertPath != ""
+; The public certificate only (no keys). It is installed next to the program, so
+; that anybody who wants to trust the signature can import it by hand.
+Source: "{#TrustCertPath}"; DestDir: "{app}"; Flags: ignoreversion
+#endif
 #if MyBuildTarget != "winarm"
 Source: "{#ReleasePath}\{#ModulesFolder}\d3d\d3dcompiler_47.dll"; DestDir: "{app}\{#ModulesFolder}\d3d"; Flags: ignoreversion
 #endif

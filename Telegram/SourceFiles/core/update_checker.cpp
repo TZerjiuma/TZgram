@@ -65,6 +65,7 @@ namespace {
 
 constexpr auto kUpdaterTimeout = 10 * crl::time(1000);
 constexpr auto kMaxResponseSize = 1024 * 1024;
+constexpr auto kUpdatesDisabled = true;
 
 // Alpha and canary builds are published far more often than the eight hours
 // a stable build waits, so they ask every ten to fifteen minutes instead.
@@ -1714,7 +1715,7 @@ void Updater::stop() {
 }
 
 void Updater::start(bool forceWait) {
-	if (cExeName().isEmpty()) {
+	if (kUpdatesDisabled || cExeName().isEmpty()) {
 		return;
 	}
 

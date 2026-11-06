@@ -570,6 +570,7 @@ PRIVATE
     core/bank_card_click_handler.h
     core/base_integration.cpp
     core/base_integration.h
+    core/branding.h
     core/changelogs.cpp
     core/changelogs.h
     core/click_handler_types.cpp
@@ -2421,6 +2422,8 @@ PRIVATE
     window/section_widget.h
     window/window_adaptive.cpp
     window/window_adaptive.h
+    window/window_accounts_rail.cpp
+    window/window_accounts_rail.h
     window/window_chat_preview.cpp
     window/window_chat_preview.h
     window/window_chat_switch_process.cpp
@@ -2731,7 +2734,11 @@ else()
         set(bundle_identifier "com.tdesktop.Telegram")
     endif()
     set(bundle_entitlements "Telegram.entitlements")
-    set(output_name "Telegram")
+    if (WIN32)
+        set(output_name "TZgram")
+    else()
+        set(output_name "Telegram")
+    endif()
 endif()
 
 if (CMAKE_GENERATOR STREQUAL Xcode)

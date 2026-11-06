@@ -128,6 +128,7 @@ private:
 	void refreshLang();
 	void showFinished();
 	void createLanguageLink();
+	void switchToSimplifiedChinese();
 	void checkUpdateStatus();
 	void setupNextButton();
 	void handleUpdates(const MTPUpdates &updates);

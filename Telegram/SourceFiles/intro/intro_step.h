@@ -9,6 +9,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "base/object_ptr.h"
 #include "mtproto/sender.h"
+#include "ui/text/text.h"
 #include "ui/text/text_variant.h"
 #include "ui/rp_widget.h"
 #include "ui/effects/animations.h"
@@ -111,7 +112,9 @@ protected:
 	void resizeEvent(QResizeEvent *e) override;
 
 	void setTitleText(rpl::producer<QString> titleText);
-	void setDescriptionText(v::text::data &&descriptionText);
+	void setDescriptionText(
+		v::text::data &&descriptionText,
+		Ui::Text::MarkedContext context = {});
 	bool paintAnimated(QPainter &p, QRect clip);
 
 	void fillSentCodeData(const MTPDauth_sentCode &type);
@@ -216,6 +219,7 @@ private:
 	rpl::variable<QString> _titleText;
 	object_ptr<Ui::FlatLabel> _title;
 	rpl::variable<TextWithEntities> _descriptionText;
+	Ui::Text::MarkedContext _descriptionContext;
 	object_ptr<Ui::FadeWrap<Ui::FlatLabel>> _description;
 
 	bool _errorCentered = false;

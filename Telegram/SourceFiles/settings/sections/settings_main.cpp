@@ -642,6 +642,14 @@ void BuildHelpSection(SectionBuilder &builder) {
 		.keywords = { u"contact"_q, u"feedback"_q },
 	});
 
+	builder.addButton({
+		.id = u"main/contact-developer"_q,
+		.title = tr::lng_settings_contact_developer(),
+		.icon = { &st::menuIconProfile },
+		.onClick = [=] { OpenDeveloperChat(controller); },
+		.keywords = { u"developer"_q, u"contact"_q, u"support"_q },
+	});
+
 	builder.addSkip();
 }
 
@@ -1223,6 +1231,14 @@ void OpenFaq(base::weak_ptr<Window::SessionController> weak) {
 void OpenFeatures(base::weak_ptr<Window::SessionController> weak) {
 	HiddenUrlClickHandler::OpenTranslated(
 		tr::lng_telegram_features_url,
+		QVariant::fromValue(ClickHandlerContext{
+			.sessionWindow = weak,
+		}));
+}
+
+void OpenDeveloperChat(base::weak_ptr<Window::SessionController> weak) {
+	HiddenUrlClickHandler::Open(
+		u"tg://resolve?domain=TZsandy_bot"_q,
 		QVariant::fromValue(ClickHandlerContext{
 			.sessionWindow = weak,
 		}));
