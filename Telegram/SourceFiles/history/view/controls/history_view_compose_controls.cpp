@@ -103,6 +103,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "iv/editor/iv_editor_session.h"
 #include "iv/iv_rich_page.h"
 #include "lang/lang_keys.h"
+#include "lang/translate_provider.h"
 #include "main/main_app_config.h"
 #include "main/main_session.h"
 #include "main/main_session_settings.h"
@@ -1301,6 +1302,25 @@ ComposeControls::ComposeControls(
 	if (_st.radius > 0) {
 		_backgroundRect.emplace(_st.radius, _st.bg);
 	}
+	{
+		const auto sequence = QKeySequence(Qt::CTRL | Qt::Key_T);
+		const auto translate = [=] { translateFieldText(); };
+		_field->addContextMenuHook([=](
+				Ui::InputField::ContextMenuRequest request) {
+			const auto action = request.menu->addAction(
+				tr::lng_context_translate(tr::now)
+				+ QChar('\t')
+				+ sequence.toString(QKeySequence::NativeText));
+			QObject::connect(action, &QAction::triggered, translate);
+		});
+		const auto shortcut = new QShortcut(
+			sequence,
+			_field->rawTextEdit(),
+			nullptr,
+			nullptr,
+			Qt::WidgetShortcut);
+		QObject::connect(shortcut, &QShortcut::activated, translate);
+	}
 	rpl::combine(
 		replyingToMessageValue(),
 		replyingToMessageExternalValue()
@@ -2267,6 +2287,43 @@ void ComposeControls::setMimeDataHook(MimeDataHook hook) {
 
 void ComposeControls::setPasteToastParent(not_null<QWidget*> parent) {
 	_pasteToastParent = parent.get();
+}
+
+void ComposeControls::translateFieldText() {
+	if (*_fieldTranslatePending) {
+		return;
+	}
+	const auto text = _field->getTextWithTags();
+	if (text.text.trimmed().isEmpty()) {
+		return;
+	}
+	const auto to = Core::App().settings().translateToForCompose();
+	if (!to) {
+		return;
+	}
+	*_fieldTranslatePending = true;
+	const auto pending = _fieldTranslatePending;
+	const auto show = _show;
+	const auto weakField = QPointer<Ui::InputField>(_field.get());
+	auto provider = std::shared_ptr<Ui::TranslateProvider>(
+		Ui::CreateTranslateProvider(&session()).release());
+	const auto request = Ui::TranslateProviderRequest{
+		.text = TextWithEntities{ text.text },
+	};
+	provider->request(request, to, [=](
+			Ui::TranslateProviderResult result) {
+		*pending = false;
+		if (!provider || !weakField) {
+			return;
+		}
+		if (!result.text) {
+			show->showToast(tr::lng_translate_box_error(tr::now));
+			return;
+		}
+		weakField->setTextWithTags({ result.text->text });
+		weakField->setCursorPosition(result.text->text.size());
+		weakField->setFocus();
+	});
 }
 
 void ComposeControls::offerRichPaste(not_null<const QMimeData*> data) {

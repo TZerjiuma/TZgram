@@ -1642,6 +1642,20 @@ void LanguageBox::setupTop(not_null<Ui::VerticalLayout*> container) {
 		Core::App().saveSettingsDelayed();
 	}, translateChat->lifetime());
 
+	const auto translateToLabel = std::make_shared<rpl::variable<QString>>(
+		Ui::LanguageName(Core::App().settings().translateToForCompose()));
+	const auto translateTo = Settings::AddButtonWithLabel(
+		container,
+		tr::lng_translate_menu_to(),
+		translateToLabel->value(),
+		st::settingsButtonNoIcon);
+	translateTo->setClickedCallback([=] {
+		uiShow()->showBox(Ui::ChooseTranslateToForComposeBox(
+			[=](LanguageId id) {
+				*translateToLabel = Ui::LanguageName(id);
+			}));
+	});
+
 	using Languages = std::vector<LanguageId>;
 	const auto translateSkipWrap = container->add(
 		object_ptr<Ui::SlideWrap<Ui::VerticalLayout>>(

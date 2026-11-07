@@ -459,6 +459,9 @@ public:
 	[[nodiscard]] const TextWithEntities &originalText() const;
 	[[nodiscard]] const TextWithEntities &translatedText() const;
 	[[nodiscard]] TextWithEntities translatedTextWithLocalEntities() const;
+	[[nodiscard]] bool translationInlineShown() const;
+	bool translationInlineRequest(LanguageId to);
+	void translationInlineDone(LanguageId to, TextWithEntities result);
 	[[nodiscard]] const std::vector<ClickHandlerPtr> &customTextLinks() const;
 	[[nodiscard]] TextForMimeData clipboardText() const;
 

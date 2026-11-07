@@ -452,6 +452,7 @@ struct HistoryMessageTranslation
 	bool requested = false;
 	bool failed = false;
 	bool used = false;
+	bool inlineShown = false;
 };
 
 struct HistoryMessageReplyMarkup

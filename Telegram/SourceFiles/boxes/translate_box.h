@@ -31,6 +31,8 @@ void TranslateBox(
 [[nodiscard]] object_ptr<BoxContent> ChooseTranslateToBox(
 	LanguageId bringUp,
 	Fn<void(LanguageId)> callback);
+[[nodiscard]] object_ptr<BoxContent> ChooseTranslateToForComposeBox(
+	Fn<void(LanguageId)> callback);
 
 [[nodiscard]] LanguageId ChooseTranslateTo(not_null<History*> history);
 [[nodiscard]] LanguageId ChooseTranslateTo(LanguageId offeredFrom);

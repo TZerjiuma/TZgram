@@ -12,8 +12,10 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "base/options.h"
 #include "base/qt/qt_key_modifiers.h"
 #include "base/unixtime.h"
+#include "base/weak_ptr.h"
 #include "core/application.h"
 #include "core/click_handler_types.h" // ClickHandlerContext
+#include "core/core_settings.h"
 #include "core/ui_integration.h"
 #include "core/update_checker.h"
 #include "history/view/history_view_cursor_state.h"
@@ -38,6 +40,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "iv/iv_rich_page.h"
 #include "boxes/premium_preview_box.h"
 #include "boxes/share_box.h"
+#include "boxes/translate_box.h"
 #include "boxes/peers/tag_info_box.h"
 #include "ui/chat/torn_edge.h"
 #include "ui/effects/reaction_fly_animation.h"
@@ -57,6 +60,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_forum_topic.h"
 #include "data/data_message_reactions.h"
 #include "lang/lang_keys.h"
+#include "lang/translate_provider.h"
 #include "mainwidget.h"
 #include "main/main_session.h"
 #include "settings/sections/settings_premium.h"
@@ -2261,6 +2265,14 @@ void Message::draw(Painter &p, const PaintContext &context) const {
 			}
 		}
 
+		if (const auto rect = translateButtonRect(); !rect.isEmpty()) {
+			drawTranslateButton(
+				p,
+				context,
+				rect,
+				selectionModeResult.progress);
+		}
+
 		if (media) {
 			media->paintBubbleFireworks(p, g, context.now);
 		}
@@ -4162,6 +4174,11 @@ TextState Message::textState(
 					- QPoint(fastShareLeft, fastShareTop));
 			}
 		}
+		if (const auto rect = translateButtonRect(); !rect.isEmpty()) {
+			if (rect.contains(point)) {
+				result.link = translateButtonLink();
+			}
+		}
 		if (_summarize && _summarize->contains(point)) {
 			result.link = _summarize->link();
 		}
@@ -6027,6 +6044,133 @@ std::optional<QSize> Message::rightActionSize() const {
 		: (displayFastShare() || displayGoToOriginal())
 		? QSize(st::historyFastShareSize, st::historyFastShareSize)
 		: std::optional<QSize>();
+}
+
+bool Message::hasTranslateButton() const {
+	if (context() != Context::History) {
+		return false;
+	}
+	const auto item = data();
+	if (!item->isHistoryEntry()
+		|| item->isService()
+		|| item->isSponsored()
+		|| isHidden()
+		|| item->translationInlineShown()) {
+		return false;
+	}
+	const auto text = item->originalText();
+	const auto enabled = Core::App().settings().translateButtonEnabled();
+	if (_translateButtonCheckedText != text.text
+		|| _translateButtonCheckedEnabled != enabled) {
+		_translateButtonCheckedText = text.text;
+		_translateButtonCheckedEnabled = enabled;
+		_translateButtonShown = enabled
+			&& !text.text.isEmpty()
+			&& !Ui::SkipTranslate(text);
+	}
+	return _translateButtonShown;
+}
+
+QRect Message::translateButtonRect() const {
+	if (!hasTranslateButton() || rightActionSize() || _summarize) {
+		return {};
+	}
+	const auto g = countGeometry();
+	if (g.width() < 1) {
+		return {};
+	}
+	const auto size = st::historyFastShareSize;
+	const auto left = hasRightLayout()
+		? (g.left() - size - st::historyFastShareLeft)
+		: (g.left() + g.width() + st::historyFastShareLeft);
+	const auto skip = std::clamp(
+		(g.height() - size) / 2,
+		0,
+		st::historyFastShareBottom);
+	const auto top = g.top() + g.height() - skip - size;
+	return QRect(left, top, size, size);
+}
+
+namespace {
+
+void RequestInlineTranslation(
+		not_null<Main::Session*> session,
+		not_null<HistoryItem*> item) {
+	const auto to = Ui::ChooseTranslateTo(item->history());
+	if (!item->translationInlineRequest(to)) {
+		return;
+	}
+	auto provider = std::shared_ptr<Ui::TranslateProvider>(
+		Ui::CreateTranslateProvider(session).release());
+	const auto request = Ui::PrepareTranslateProviderRequest(
+		provider.get(),
+		item->history()->peer,
+		item->id,
+		item->originalText());
+	const auto fullId = item->fullId();
+	const auto weak = base::make_weak(session);
+	provider->request(request, to, [=](Ui::TranslateProviderResult result) {
+		if (!provider) {
+			return;
+		}
+		const auto strong = weak.get();
+		if (!strong) {
+			return;
+		}
+		const auto resolved = strong->data().message(fullId);
+		if (!resolved) {
+			return;
+		}
+		resolved->translationInlineDone(to, result.text
+			? std::move(*result.text)
+			: TextWithEntities());
+	});
+}
+
+} // namespace
+
+ClickHandlerPtr Message::translateButtonLink() const {
+	if (!_translateButtonLink) {
+		const auto fullId = data()->fullId();
+		const auto sessionId = data()->history()->session().uniqueId();
+		_translateButtonLink = std::make_shared<LambdaClickHandler>(
+			[=](ClickContext context) {
+				const auto controller = ExtractController(context);
+				if (!controller
+					|| controller->session().uniqueId() != sessionId) {
+					return;
+				}
+				const auto item = controller->session().data().message(
+					fullId);
+				if (!item) {
+					return;
+				}
+				RequestInlineTranslation(&controller->session(), item);
+			});
+	}
+	return _translateButtonLink;
+}
+
+void Message::drawTranslateButton(
+		Painter &p,
+		const PaintContext &context,
+		QRect rect,
+		float64 selectionProgress) const {
+	const auto st = context.st;
+	const auto o = p.opacity();
+	if (selectionProgress > 0) {
+		p.setOpacity(1. - selectionProgress);
+	}
+	p.setPen(Qt::NoPen);
+	p.setBrush(st->msgServiceBg());
+	{
+		PainterHighQualityEnabler hq(p);
+		p.drawEllipse(rect);
+	}
+	st::historyTranslateIcon.paintInCenter(p, rect);
+	if (selectionProgress > 0) {
+		p.setOpacity(o);
+	}
 }
 
 bool Message::displayFastShare() const {

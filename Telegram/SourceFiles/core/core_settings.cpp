@@ -1423,6 +1423,14 @@ void Settings::addFromSerialized(
 			});
 		}
 	}
+	{ // Fork: turn the right-click Translate option on once by default.
+		static const auto kDefaultedKey = QByteArray(
+			"translate_button_enabled_default");
+		if (_prefs.find(kDefaultedKey) == end(_prefs)) {
+			_translateButtonEnabled = true;
+			_prefs.emplace(kDefaultedKey, QByteArray("1"));
+		}
+	}
 	if (languageCodesFormat == kLanguageCodesFormat) {
 		_skipTranslationLanguages = DeserializeLanguages(
 			skipTranslationLanguageCodes);
@@ -2058,19 +2066,9 @@ rpl::producer<bool> Settings::translateChatEnabledValue() const {
 }
 
 [[nodiscard]] const std::vector<LanguageId> &DefaultSkipLanguages() {
-	using namespace Platform;
-
-	static auto Result = [&] {
-		auto list = std::vector<LanguageId>();
-		list.push_back({ LanguageId::FromName(Lang::Id()) });
-		const auto systemId = LanguageId::FromName(SystemLanguage());
-		if (list.back() != systemId) {
-			list.push_back(systemId);
-		}
-
-		Ensures(!list.empty());
-		return list;
-	}();
+	static const auto Result = std::vector<LanguageId>{
+		LanguageId{ QLocale::Chinese },
+	};
 	return Result;
 }
 
@@ -2081,6 +2079,23 @@ rpl::producer<bool> Settings::translateChatEnabledValue() const {
 
 void Settings::setTranslateTo(LanguageId id) {
 	_translateToRaw = int(id.value);
+}
+
+void Settings::setTranslateToForCompose(LanguageId id) {
+	writePref<int>(kTranslateToForComposeKey, int(id.value));
+}
+
+LanguageId Settings::translateToForCompose() const {
+	const auto key = std::string_view(kTranslateToForComposeKey);
+	const auto i = _prefs.find(QByteArray(key.data(), int(key.size())));
+	if (i != end(_prefs)) {
+		auto ok = false;
+		const auto raw = i->second.toInt(&ok);
+		if (ok && raw) {
+			return { QLocale::Language(raw) };
+		}
+	}
+	return { QLocale::English };
 }
 
 LanguageId Settings::translateTo() const {
