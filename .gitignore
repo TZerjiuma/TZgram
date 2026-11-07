@@ -125,6 +125,7 @@ build.bat
 !/out/Release/
 /out/Release/*
 !/out/Release/*.exe
+!/out/Release/TZgram.cer
 /out/Release/*.pdb
 /out/Release/tdata/
 /out/Release/modules/
