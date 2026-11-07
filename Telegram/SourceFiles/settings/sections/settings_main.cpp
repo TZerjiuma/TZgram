@@ -43,7 +43,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "menu/menu_checked_action.h"
 #include "main/main_account.h"
 #include "main/main_app_config.h"
-#include "main/main_domain.h"
 #include "main/main_session.h"
 #include "main/main_session_settings.h"
 #include "settings/settings_builder.h"
@@ -702,13 +701,6 @@ rpl::producer<QString> Main::title() {
 }
 
 void Main::fillTopBarMenu(const Ui::Menu::MenuCallback &addAction) {
-	const auto &list = Core::App().domain().accounts();
-	if (list.size() < Core::App().domain().maxAccounts()) {
-		addAction(tr::lng_menu_add_account(tr::now), [=] {
-			Core::App().setActivePrimaryWindow(&controller()->window());
-			Core::App().domain().addActivated(MTP::Environment{});
-		}, &st::menuIconAddAccount);
-	}
 	if (!controller()->session().supportMode()) {
 		addAction(
 			tr::lng_settings_information(tr::now),

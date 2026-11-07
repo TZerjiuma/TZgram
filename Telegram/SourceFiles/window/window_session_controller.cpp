@@ -2127,31 +2127,6 @@ void SessionController::setupShortcuts() {
 	}) | rpl::on_next([=](not_null<Request*> request) {
 		using C = Command;
 
-		const auto app = &Core::App();
-		const auto accountsCount = int(app->domain().accounts().size());
-		auto &&accounts = ranges::views::zip(
-			kShowAccount,
-			ranges::views::ints(0, accountsCount));
-		for (const auto &[command, index] : accounts) {
-			request->check(command) && request->handle([=] {
-				const auto list = app->domain().orderedAccounts();
-				if (index >= list.size()) {
-					return false;
-				}
-				const auto account = list[index];
-				if (account == &session().account()) {
-					return false;
-				}
-				const auto window = app->separateWindowFor(account);
-				if (window) {
-					window->activate();
-				} else {
-					app->domain().maybeActivate(account);
-				}
-				return true;
-			});
-		}
-
 		if (!session().supportMode()) {
 			return;
 		}

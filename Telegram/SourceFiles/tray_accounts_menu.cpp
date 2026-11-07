@@ -39,46 +39,4 @@ void SetupChangesSubscription(Fn<void()> callback, rpl::lifetime &lifetime) {
 	watchAccountSessions();
 }
 
-void Fill(Platform::Tray &tray) {
-	if (Core::App().passcodeLocked()) {
-		return;
-	}
-	auto accounts = std::vector<not_null<Main::Account*>>();
-	for (const auto &account : Core::App().domain().orderedAccounts()) {
-		if (account->sessionExists()) {
-			accounts.push_back(account);
-		}
-	}
-	if (accounts.size() <= 1) {
-		return;
-	}
-	tray.addSeparator();
-	constexpr auto kMaxLength = 30;
-	for (const auto account : accounts) {
-		const auto user = account->session().user();
-		const auto weak = base::make_weak(account);
-		tray.addAction(
-			Info::Profile::NameValue(
-				user
-			) | rpl::map([=](const QString &name) {
-				return (name.size() > kMaxLength)
-					? (name.mid(0, kMaxLength) + Ui::kQEllipsis)
-					: name;
-			}),
-			[weak] {
-				const auto strong = weak.get();
-				if (!strong || !strong->sessionExists()) {
-					return;
-				}
-				if (base::IsCtrlPressed()) {
-					Core::App().ensureSeparateWindowFor({ strong });
-				} else {
-					Core::App().domain().maybeActivate(strong);
-				}
-			},
-			Ui::MakeUserpicThumbnail(user, true),
-			st::notifyMacPhotoSize);
-	}
-}
-
 } // namespace Core::TrayAccountsMenu

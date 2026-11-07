@@ -107,13 +107,6 @@ const auto CommandByName = base::flat_map<QString, Command>{
 	{ u"next_folder"_q                   , Command::FolderNext },
 	{ u"all_chats"_q                     , Command::ShowAllChats },
 
-	{ u"account1"_q                      , Command::ShowAccount1 },
-	{ u"account2"_q                      , Command::ShowAccount2 },
-	{ u"account3"_q                      , Command::ShowAccount3 },
-	{ u"account4"_q                      , Command::ShowAccount4 },
-	{ u"account5"_q                      , Command::ShowAccount5 },
-	{ u"account6"_q                      , Command::ShowAccount6 },
-
 	{ u"folder1"_q                       , Command::ShowFolder1 },
 	{ u"folder2"_q                       , Command::ShowFolder2 },
 	{ u"folder3"_q                       , Command::ShowFolder3 },
@@ -624,7 +617,7 @@ void Manager::writeDefaultFile() {
 	}
 
 	// Commands without a default value.
-	for (const auto c : ranges::views::concat(kShowAccount, kNoValue)) {
+	for (const auto c : kNoValue) {
 		for (const auto &[name, command] : CommandByName) {
 			if (c == command) {
 				auto entry = QJsonObject();

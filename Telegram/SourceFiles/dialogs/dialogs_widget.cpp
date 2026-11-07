@@ -70,7 +70,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "window/window_session_controller.h"
 #include "window/window_slide_animation.h"
 #include "window/window_connecting_widget.h"
-#include "window/window_main_menu.h"
 #include "storage/storage_media_prepare.h"
 #include "storage/storage_account.h"
 #include "storage/storage_domain.h"
@@ -1733,17 +1732,6 @@ void Widget::setupMainMenuToggle() {
 		_searchForNarrowLayout->setVisible(!filtersHidden);
 		updateControlsGeometry();
 	}, lifetime());
-
-	Window::OtherAccountsUnreadState(
-		&controller()->session().account()
-	) | rpl::on_next([=](const Window::OthersUnreadState &state) {
-		const auto icon = !state.count
-			? nullptr
-			: !state.allMuted
-			? &st::dialogsMenuToggleUnread
-			: &st::dialogsMenuToggleUnreadMuted;
-		_mainMenu.toggle->setIconOverride(icon, icon);
-	}, _mainMenu.toggle->lifetime());
 }
 
 void Widget::setupStories() {

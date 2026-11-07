@@ -104,15 +104,12 @@ public:
 		not_null<Ui::SettingsButton*> button,
 		not_null<::Main::Session*> session,
 		rpl::producer<QString> &&text,
-		bool hasUnread,
 		Fn<bool()> animationPaused);
 
 private:
 	rpl::variable<QString> _text;
-	rpl::event_stream<int> _unreadWidth;
 	rpl::event_stream<int> _premiumWidth;
 
-	QPointer<Ui::RpWidget> _unread;
 	Info::Profile::Badge _badge;
 
 };
@@ -122,7 +119,6 @@ ComposedBadge::ComposedBadge(
 	not_null<Ui::SettingsButton*> button,
 	not_null<::Main::Session*> session,
 	rpl::producer<QString> &&text,
-	bool hasUnread,
 	Fn<bool()> animationPaused)
 : Ui::RpWidget(parent)
 , _text(std::move(text))
@@ -135,26 +131,6 @@ ComposedBadge::ComposedBadge(
 		std::move(animationPaused),
 		kPlayStatusLimit,
 		Info::Profile::BadgeType::Premium) {
-	if (hasUnread) {
-		_unread = Badge::CreateUnread(this, rpl::single(
-			rpl::empty
-		) | rpl::then(
-			session->data().unreadBadgeChanges()
-		) | rpl::map([=] {
-			const auto &owner = session->data();
-			return Badge::UnreadBadge{
-				owner.unreadWithMentionsBadge(),
-				owner.unreadWithMentionsBadgeMuted(),
-			};
-		}));
-		rpl::combine(
-			_unread->shownValue(),
-			_unread->widthValue()
-		) | rpl::map([=](bool shown, int width) {
-			return shown ? width : 0;
-		}) | rpl::start_to_stream(_unreadWidth, _unread->lifetime());
-	}
-
 	_badge.updated(
 	) | rpl::on_next([=] {
 		if (const auto button = _badge.widget()) {
@@ -169,14 +145,12 @@ ComposedBadge::ComposedBadge(
 		return button->fullTextWidth();
 	});
 	rpl::combine(
-		_unreadWidth.events_starting_with(_unread ? _unread->width() : 0),
 		_premiumWidth.events_starting_with(_badge.widget()
 			? _badge.widget()->width()
 			: 0),
 		std::move(textWidth),
 		button->sizeValue()
 	) | rpl::on_next([=](
-			int unreadWidth,
 			int premiumWidth,
 			int textWidth,
 			const QSize &buttonSize) {
@@ -185,7 +159,7 @@ ComposedBadge::ComposedBadge(
 		const auto textRightPosition = st.padding.left()
 			+ textWidth
 			+ skip;
-		const auto minWidth = unreadWidth + premiumWidth + skip;
+		const auto minWidth = premiumWidth + skip;
 		const auto maxTextWidth = buttonSize.width()
 			- minWidth
 			- st.padding.right();
@@ -200,11 +174,6 @@ ComposedBadge::ComposedBadge(
 			0,
 			st.padding.top(),
 			buttonSize.height() - st.padding.top());
-		if (_unread) {
-			_unread->moveToRight(
-				0,
-				(buttonSize.height() - _unread->height()) / 2);
-		}
 	}, lifetime());
 }
 
@@ -786,17 +755,19 @@ void SetupBio(
 	Ui::AddDividerText(container, tr::lng_settings_about_bio());
 }
 
-void SetupAccountsWrap(
-		not_null<Ui::VerticalLayout*> container,
-		not_null<Window::SessionController*> controller,
-		InformationHighlightTargets *targets) {
-	Ui::AddSkip(container);
-
-	auto events = SetupAccounts(container, controller);
-	if (targets) {
-		targets->addAccount = events.addAccountButton;
-	}
-}
+// Accounts are added and switched in the accounts rail only, so the list
+// of accounts is not shown on this page.
+// void SetupAccountsWrap(
+// 		not_null<Ui::VerticalLayout*> container,
+// 		not_null<Window::SessionController*> controller,
+// 		InformationHighlightTargets *targets) {
+// 	Ui::AddSkip(container);
+//
+// 	auto events = SetupAccounts(container, controller);
+// 	if (targets) {
+// 		targets->addAccount = events.addAccountButton;
+// 	}
+// }
 
 [[nodiscard]] bool IsAltShift(Qt::KeyboardModifiers modifiers) {
 	return (modifiers & Qt::ShiftModifier) && (modifiers & Qt::AltModifier);
@@ -832,7 +803,6 @@ void SetupAccountsWrap(
 			raw,
 			session,
 			std::move(text),
-			!active,
 			[=] { return window->isGifPausedAtLeastFor(
 				Window::GifPauseReason::Layer); });
 		composedBadge->sizeValue(
@@ -1244,13 +1214,6 @@ void BuildInformationSection(SectionBuilder &builder) {
 			},
 		};
 	});
-	builder.add(nullptr, [] {
-		return SearchEntry{
-			.id = u"edit/add-account"_q,
-			.title = tr::lng_menu_add_account(tr::now),
-			.keywords = { u"account"_q, u"add"_q, u"switch"_q, u"multiple"_q },
-		};
-	});
 }
 
 class Information : public Section<Information> {
@@ -1336,7 +1299,7 @@ void Information::setupContent() {
 		SetupRows(container, controller, self, &targets);
 		SetupPersonalChannel(container, controller, self, &targets);
 		SetupBirthday(container, controller, self, &targets);
-		SetupAccountsWrap(container, controller, &targets);
+		// SetupAccountsWrap(container, controller, &targets);
 
 		*photo = targets.photo;
 		*uploadPhoto = targets.uploadPhoto;

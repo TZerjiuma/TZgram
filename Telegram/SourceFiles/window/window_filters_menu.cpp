@@ -11,7 +11,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "mainwindow.h"
 #include "window/window_session_controller.h"
 #include "window/window_controller.h"
-#include "window/window_main_menu.h"
 #include "window/window_peer_menu.h"
 #include "window/window_filters_favorite.h"
 #include "main/main_session.h"
@@ -119,7 +118,6 @@ FiltersMenu::~FiltersMenu() = default;
 
 void FiltersMenu::setup() {
 	setupDragAndDrop();
-	setupMainMenuIcon();
 	_menu.setIsMenuButton(true);
 	_menu.setAccessibleName(tr::lng_main_menu(tr::now));
 
@@ -229,19 +227,6 @@ void FiltersMenu::setupDragAndDrop() {
 				button->setForceRippled(id == filterId);
 			}
 		});
-}
-
-void FiltersMenu::setupMainMenuIcon() {
-	OtherAccountsUnreadState(
-		&_session->session().account()
-	) | rpl::on_next([=](const OthersUnreadState &state) {
-		const auto icon = !state.count
-			? nullptr
-			: !state.allMuted
-			? &st::windowFiltersMainMenuUnread
-			: &st::windowFiltersMainMenuUnreadMuted;
-		_menu.setIconOverride(icon, icon);
-	}, _outer.lifetime());
 }
 
 void FiltersMenu::scrollToButton(not_null<Ui::RpWidget*> widget) {

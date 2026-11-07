@@ -48,11 +48,6 @@ struct Labeled {
 			lt_index,
 			rpl::single(QString::number(index)));
 	};
-	const auto account = [](int index) {
-		return tr::lng_shortcuts_show_account_n(
-			lt_index,
-			rpl::single(QString::number(index)));
-	};
 	const auto folder = [](int index) {
 		return tr::lng_shortcuts_show_folder_n(
 			lt_index,
@@ -82,13 +77,6 @@ struct Labeled {
 		{ C::ChatPinned6, pinned(6) },
 		{ C::ChatPinned7, pinned(7) },
 		{ C::ChatPinned8, pinned(8) },
-		separator,
-		{ C::ShowAccount1, account(1) },
-		{ C::ShowAccount2, account(2) },
-		{ C::ShowAccount3, account(3) },
-		{ C::ShowAccount4, account(4) },
-		{ C::ShowAccount5, account(5) },
-		{ C::ShowAccount6, account(6) },
 		separator,
 		{ C::ShowAllChats, tr::lng_shortcuts_show_all_chats() },
 		{ C::ShowFolder1, folder(1) },

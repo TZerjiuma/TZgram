@@ -110,8 +110,6 @@ void Tray::rebuildMenu() {
 
 	_tray.addAction(tr::lng_quit_from_tray(), [] { Core::Quit(); });
 
-	TrayAccountsMenu::Fill(_tray);
-
 	updateMenuText();
 }
 
