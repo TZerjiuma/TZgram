@@ -22,8 +22,8 @@ constexpr auto AppId = "{53F49750-6209-4FBF-9CA8-7A333C87D1ED}"_cs;
 constexpr auto AppNameOld = "Telegram Win (Unofficial)"_cs;
 constexpr auto AppName = "TZgram"_cs;
 constexpr auto AppFile = "TZgram"_cs;
-constexpr auto AppVersion = 7005001;
-constexpr auto AppVersionStr = "7.5.1";
+constexpr auto AppVersion = 7005002;
+constexpr auto AppVersionStr = "7.5.2";
 constexpr auto AppBetaVersion = false;
 constexpr auto AppAlphaVersion = TDESKTOP_ALPHA_VERSION;
 

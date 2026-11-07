@@ -6054,8 +6054,7 @@ bool Message::hasTranslateButton() const {
 	if (!item->isHistoryEntry()
 		|| item->isService()
 		|| item->isSponsored()
-		|| isHidden()
-		|| item->translationInlineShown()) {
+		|| isHidden()) {
 		return false;
 	}
 	const auto text = item->originalText();
@@ -6096,17 +6095,19 @@ namespace {
 void RequestInlineTranslation(
 		not_null<Main::Session*> session,
 		not_null<HistoryItem*> item) {
+	if (item->translationInlineShown()) {
+		item->translationInlineRevert();
+		return;
+	}
 	const auto to = Ui::ChooseTranslateTo(item->history());
 	if (!item->translationInlineRequest(to)) {
 		return;
 	}
 	auto provider = std::shared_ptr<Ui::TranslateProvider>(
 		Ui::CreateTranslateProvider(session).release());
-	const auto request = Ui::PrepareTranslateProviderRequest(
-		provider.get(),
-		item->history()->peer,
-		item->id,
-		item->originalText());
+	const auto request = Ui::TranslateProviderRequest{
+		.text = item->originalText(),
+	};
 	const auto fullId = item->fullId();
 	const auto weak = base::make_weak(session);
 	provider->request(request, to, [=](Ui::TranslateProviderResult result) {

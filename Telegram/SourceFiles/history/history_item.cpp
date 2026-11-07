@@ -3862,6 +3862,19 @@ void HistoryItem::translationInlineDone(
 	_history->owner().requestItemTextRefresh(this);
 }
 
+void HistoryItem::translationInlineRevert() {
+	const auto translation = Get<HistoryMessageTranslation>();
+	if (!translation || !translation->inlineShown) {
+		return;
+	}
+	translation->inlineShown = false;
+	translation->text = {};
+	translation->richPage = nullptr;
+	translation->requested = false;
+	translation->failed = false;
+	_history->owner().requestItemTextRefresh(this);
+}
+
 bool HistoryItem::canReact() const {
 	if (!isRegular()) {
 		return false;

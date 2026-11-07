@@ -462,6 +462,7 @@ public:
 	[[nodiscard]] bool translationInlineShown() const;
 	bool translationInlineRequest(LanguageId to);
 	void translationInlineDone(LanguageId to, TextWithEntities result);
+	void translationInlineRevert();
 	[[nodiscard]] const std::vector<ClickHandlerPtr> &customTextLinks() const;
 	[[nodiscard]] TextForMimeData clipboardText() const;
 

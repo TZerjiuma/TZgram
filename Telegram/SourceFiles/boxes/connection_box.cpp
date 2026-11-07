@@ -1328,6 +1328,17 @@ void ProxiesBox::setupContent() {
 	_proxyRotationOptions->finishAnimating();
 
 	{
+		const auto freeProxy = Settings::AddButtonWithIcon(
+			inner,
+			tr::lng_proxy_free_list(),
+			st::settingsButton,
+			{ &st::menuIconRestartBot });
+		freeProxy->setClickedCallback([=] {
+			Core::App().refreshFreeProxies();
+		});
+	}
+
+	{
 		const auto wrap = inner->add(
 			object_ptr<Ui::SlideWrap<Ui::VerticalLayout>>(
 				inner,
