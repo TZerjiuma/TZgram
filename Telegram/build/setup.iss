@@ -2,7 +2,13 @@
 #define MyAppName "TZgram"
 #define MyAppPublisher "ONEBOAT"
 #define MyAppURL "https://t.me/oneboat"
-#define MyAppExeName "TZgram.exe"
+; The program file carries the version in its name, the same way the
+; name of the installer does. It is passed from the outside (ISCC
+; /dMyAppExeName=...), because it has to match the name that the
+; build gives the exe.
+#ifndef MyAppExeName
+  #define MyAppExeName "TZgram-" + MyAppVersionFull + ".exe"
+#endif
 #define MyAppId "53F49750-6209-4FBF-9CA8-7A333C87D1ED"
 #define CurrentYear GetDateTimeString('yyyy','','')
 
@@ -89,6 +95,12 @@ Name: "ua";      MessagesFile: "compiler:Languages\Ukrainian.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
+
+[InstallDelete]
+; The program file carries the version in its name, so the file of the
+; previous version has to go when a new one is installed over it.
+Type: files; Name: "{app}\TZgram.exe"
+Type: files; Name: "{app}\TZgram-*.exe"
 
 [Files]
 Source: "{#ReleasePath}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
