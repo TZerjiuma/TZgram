@@ -473,6 +473,14 @@ private:
 	[[nodiscard]] bool invertMedia() const;
 	[[nodiscard]] bool hasFastReply() const;
 	[[nodiscard]] bool displayFastReply() const;
+	[[nodiscard]] bool hasTranslateButton() const;
+	[[nodiscard]] QRect translateButtonRect() const;
+	[[nodiscard]] ClickHandlerPtr translateButtonLink() const;
+	void drawTranslateButton(
+		Painter &p,
+		const PaintContext &context,
+		QRect rect,
+		float64 selectionProgress) const;
 
 	[[nodiscard]] bool isPinnedContext() const;
 	[[nodiscard]] bool isCommentsRootView() const;
@@ -541,6 +549,10 @@ private:
 
 	mutable std::unique_ptr<RightAction> _rightAction;
 	mutable ClickHandlerPtr _fastReplyLink;
+	mutable ClickHandlerPtr _translateButtonLink;
+	mutable QString _translateButtonCheckedText;
+	mutable bool _translateButtonCheckedEnabled = false;
+	mutable bool _translateButtonShown = false;
 	mutable std::unique_ptr<ViewButton> _viewButton;
 	std::unique_ptr<TopicButton> _topicButton;
 	mutable std::unique_ptr<LinkRipple> _linkRipple;

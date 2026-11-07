@@ -446,6 +446,7 @@ private:
 	void showAiComposeBox();
 	void triggerAiApplyInPlace();
 	[[nodiscard]] bool canSendAiComposeDirect() const;
+	void translateFieldText();
 
 	[[nodiscard]] bool showRecordButton() const;
 	[[nodiscard]] bool showEditStarsButton() const;
@@ -597,6 +598,7 @@ private:
 	std::unique_ptr<Controls::TTLButton> _ttlInfo;
 	base::unique_qptr<Controls::CharactersLimitLabel> _charsLimitation;
 	FieldCharsCountManager _fieldCharsCountManager;
+	std::shared_ptr<bool> _fieldTranslatePending = std::make_shared<bool>(false);
 	base::unique_qptr<Ui::IconButton> _scheduled;
 	base::unique_qptr<Ui::IconButton> _giftToUser;
 	base::unique_qptr<Ui::IconButton> _toggleSuggestPost;

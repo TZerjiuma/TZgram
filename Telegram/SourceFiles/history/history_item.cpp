@@ -3810,6 +3810,58 @@ void HistoryItem::translationDone(
 	}
 }
 
+bool HistoryItem::translationInlineShown() const {
+	const auto translation = Get<HistoryMessageTranslation>();
+	return translation
+		&& !translation->text.empty()
+		&& (translation->inlineShown || translation->used);
+}
+
+bool HistoryItem::translationInlineRequest(LanguageId to) {
+	if (!to) {
+		return false;
+	}
+	auto translation = Get<HistoryMessageTranslation>();
+	if (translation
+		&& translation->requested
+		&& translation->text.empty()) {
+		return false;
+	}
+	if (!translation) {
+		AddComponents(HistoryMessageTranslation::Bit());
+		translation = Get<HistoryMessageTranslation>();
+	}
+	translation->to = to;
+	translation->text = {};
+	translation->richPage = nullptr;
+	translation->requested = true;
+	translation->failed = false;
+	translation->inlineShown = false;
+	return true;
+}
+
+void HistoryItem::translationInlineDone(
+		LanguageId to,
+		TextWithEntities result) {
+	const auto translation = Get<HistoryMessageTranslation>();
+	if (!translation
+		|| !translation->requested
+		|| (translation->to != to)) {
+		return;
+	}
+	translation->requested = false;
+	if (result.empty()) {
+		translation->failed = true;
+		translation->inlineShown = false;
+	} else {
+		translation->text = std::move(result);
+		translation->richPage = nullptr;
+		translation->failed = false;
+		translation->inlineShown = true;
+	}
+	_history->owner().requestItemTextRefresh(this);
+}
+
 bool HistoryItem::canReact() const {
 	if (!isRegular()) {
 		return false;
@@ -4239,6 +4291,25 @@ TextWithEntities HistoryItem::translatedTextWithLocalEntities() const {
 			result.entities.erase(from, result.entities.end());
 			setHasHiddenLinks(true);
 		}
+	}
+
+	if (const auto translation = Get<HistoryMessageTranslation>()
+		; translation
+		&& translation->inlineShown
+		&& !translation->used
+		&& !translation->text.empty()
+		&& !translatedRichPage()) {
+		const auto shift = int(result.text.size()) + 2;
+		result.text += QStringLiteral("\n\n");
+		result.text += translation->text.text;
+		for (auto entity : translation->text.entities) {
+			entity.shiftRight(shift);
+			result.entities.append(entity);
+		}
+		result.entities.append(EntityInText(
+			EntityType::Italic,
+			shift,
+			int(translation->text.text.size())));
 	}
 
 	return result;

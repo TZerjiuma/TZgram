@@ -606,6 +606,23 @@ object_ptr<BoxContent> ChooseTranslateToBox(
 	}, selected, false, nullptr);
 }
 
+object_ptr<BoxContent> ChooseTranslateToForComposeBox(
+		Fn<void(LanguageId)> callback) {
+	const auto &settings = Core::App().settings();
+	auto selected = std::vector<LanguageId>{
+		settings.translateToForCompose(),
+	};
+	return Box(ChooseLanguageBox, tr::lng_languages(), [=](
+			const std::vector<LanguageId> &ids) {
+		Expects(!ids.empty());
+
+		const auto id = ids.front();
+		Core::App().settings().setTranslateToForCompose(id);
+		Core::App().saveSettingsDelayed();
+		callback(id);
+	}, selected, false, nullptr);
+}
+
 LanguageId ChooseTranslateTo(not_null<History*> history) {
 	return ChooseTranslateTo(history->translateOfferedFrom());
 }

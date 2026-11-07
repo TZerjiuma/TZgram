@@ -41,6 +41,8 @@ inline constexpr auto kScreenReaderModeDisabledKey
 	= "screen-reader-mode-disabled"_cs;
 inline constexpr auto kLoopAnimatedStickersChosenKey
 	= "loop-animated-stickers-chosen"_cs;
+inline constexpr auto kTranslateToForComposeKey
+	= "translate-to-for-compose"_cs;
 
 struct WindowPosition {
 	int32 moncrc = 0;
@@ -906,6 +908,8 @@ public:
 	void setTranslateTo(LanguageId id);
 	[[nodiscard]] LanguageId translateTo() const;
 	[[nodiscard]] rpl::producer<LanguageId> translateToValue() const;
+	void setTranslateToForCompose(LanguageId id);
+	[[nodiscard]] LanguageId translateToForCompose() const;
 	void setSkipTranslationLanguages(std::vector<LanguageId> languages);
 	[[nodiscard]] std::vector<LanguageId> skipTranslationLanguages() const;
 	[[nodiscard]] auto skipTranslationLanguagesValue() const
@@ -1183,7 +1187,7 @@ private:
 #endif // Q_OS_MAC
 	HistoryView::DoubleClickQuickAction _chatQuickAction
 		= HistoryView::DoubleClickQuickAction();
-	bool _translateButtonEnabled = false;
+	bool _translateButtonEnabled = true;
 	bool _usePlatformTranslation = false;
 	rpl::variable<bool> _translateChatEnabled = true;
 	rpl::variable<int> _translateToRaw = 0;
