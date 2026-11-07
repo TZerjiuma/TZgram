@@ -28,6 +28,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "core/sandbox.h"
 #include "core/local_url_handlers.h"
 #include "core/launcher.h"
+#include "core/free_proxy_manager.h"
 #include "core/proxy_rotation_manager.h"
 #include "core/ui_integration.h"
 #include "core/version.h"
@@ -159,6 +160,7 @@ struct Application::Private {
 	UiIntegration uiIntegration;
 	Settings settings;
 	std::unique_ptr<ProxyRotationManager> proxyRotation;
+	FreeProxyManager freeProxyManager;
 };
 
 Application::Application()
@@ -925,6 +927,10 @@ void Application::setCurrentProxy(
 	_proxyChanges.fire({ was, now });
 	my.connectionTypeChangesNotify();
 	proxyRotationSettingsChanged();
+}
+
+void Application::refreshFreeProxies() {
+	_private->freeProxyManager.refresh();
 }
 
 void Application::proxyRotationSettingsChanged() {

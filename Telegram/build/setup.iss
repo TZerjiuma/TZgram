@@ -37,6 +37,8 @@ DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 OutputDir={#ReleasePath}
 SetupIconFile={#SourcePath}..\Resources\art\icon256.ico
+WizardImageFile={#SourcePath}..\Resources\art\wizard_logo_big.bmp
+WizardSmallImageFile={#SourcePath}..\Resources\art\wizard_logo_small.bmp
 UninstallDisplayName={#MyAppName}
 UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma
@@ -92,6 +94,11 @@ Name: "pt_BR";   MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
 Name: "ru";      MessagesFile: "compiler:Languages\Russian.isl"
 Name: "fr";      MessagesFile: "compiler:Languages\French.isl"
 Name: "ua";      MessagesFile: "compiler:Languages\Ukrainian.isl"
+
+[Messages]
+; 欢迎页说明文字（自定义，替代默认的那句）。
+chinese.WelcomeLabel2=本向导将把 [name] 安装到你的电脑上。%n[name] 是基于 Telegram 官方桌面端源码的第三方客户端，与 Telegram 官方无关。%n%n点击「下一步」继续。
+english.WelcomeLabel2=This wizard will install [name] on your computer.%n[name] is a third-party client based on the Telegram Desktop source code and is not affiliated with Telegram.%n%nClick Next to continue.
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
@@ -159,6 +166,26 @@ end;
 const CSIDL_DESKTOPDIRECTORY = $0010;
       CSIDL_COMMON_DESKTOPDIRECTORY = $0019;
 
+// Deletes the installer after the installation finishes. The installer file
+// is locked while the setup is running, so a small batch file retries the
+// deletion in the background until the setup process releases it.
+procedure DeleteInstaller();
+var
+  BatchFile: String;
+  ResultCode: Integer;
+begin
+  BatchFile := ExpandConstant('{tmp}\delete_installer.bat');
+  SaveStringToFile(BatchFile,
+    '@echo off' + #13#10 +
+    ':retry' + #13#10 +
+    'del /f /q "' + ExpandConstant('{srcexe}') + '"' + #13#10 +
+    'if exist "' + ExpandConstant('{srcexe}') + '" goto retry' + #13#10 +
+    'del /f /q "' + BatchFile + '"' + #13#10,
+    False);
+  Exec(ExpandConstant('{cmd}'), '/c "' + BatchFile + '"', '',
+    SW_HIDE, ewNoWait, ResultCode);
+end;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 var ResultCode: Integer;
     HasOldKey: Boolean;
@@ -183,5 +210,9 @@ begin
       else
         ShellExec('', ExpandConstant('{app}\{#MyAppExeName}'), '-fixprevious', '', SW_SHOW, ewWaitUntilTerminated, ResultCode);
     end;
+  end
+  else if CurStep = ssDone then
+  begin
+    DeleteInstaller();
   end;
 end;

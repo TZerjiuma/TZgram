@@ -42,6 +42,11 @@ constexpr ForkTranslation kForkTranslations[] = {
 		"zh",
 		"lng_settings_contact_developer",
 		"联系开发者"
+	},
+	{
+		"zh",
+		"lng_proxy_free_list",
+		"免费代理"
 	}
 };
 
