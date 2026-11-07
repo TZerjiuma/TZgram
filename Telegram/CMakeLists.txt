@@ -2735,7 +2735,10 @@ else()
     endif()
     set(bundle_entitlements "Telegram.entitlements")
     if (WIN32)
-        set(output_name "TZgram")
+        # The file name carries the version, the same way the name of
+        # the installer does, so that a build that sits next to an
+        # installed one can not be confused with it.
+        set(output_name "TZgram-${desktop_app_version_string}")
     else()
         set(output_name "Telegram")
     endif()
