@@ -8,6 +8,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/components/passkeys.h"
 
 #include "apiwrap.h"
+#include "core/api_credentials.h"
 #include "data/data_passkey_deserialize.h"
 #include "main/main_app_config.h"
 #include "main/main_session.h"

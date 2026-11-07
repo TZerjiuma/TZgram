@@ -25,6 +25,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "main/main_app_config.h"
 #include "main/main_account.h"
 #include "ui/boxes/confirm_box.h"
+#include "core/api_credentials.h"
 #include "core/application.h"
 #include "core/core_cloud_password.h"
 #include "core/update_checker.h"
