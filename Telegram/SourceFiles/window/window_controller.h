@@ -51,6 +51,12 @@ public:
 	[[nodiscard]] SeparateId id() const;
 	[[nodiscard]] bool isPrimary() const;
 
+	// True for the main window of the application, the one that is created
+	// on the start, and not for the separate account windows.
+	[[nodiscard]] bool isMain() const {
+		return _main;
+	}
+
 	[[nodiscard]] not_null<::MainWindow*> widget() {
 		return &_widget;
 	}
@@ -161,6 +167,7 @@ public:
 private:
 	struct CreateArgs {
 		SeparateId id;
+		bool main = false;
 	};
 	explicit Controller(CreateArgs &&args);
 
@@ -179,6 +186,7 @@ private:
 	void showTermsDelete();
 
 	SeparateId _id;
+	bool _main = false;
 	base::Timer _isActiveTimer;
 	::MainWindow _widget;
 	const std::unique_ptr<Adaptive> _adaptive;
