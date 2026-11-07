@@ -38,7 +38,6 @@ AllowNoIcons=yes
 OutputDir={#ReleasePath}
 SetupIconFile={#SourcePath}..\Resources\art\icon256.ico
 WizardImageFile={#SourcePath}..\Resources\art\wizard_logo_big.bmp
-WizardSmallImageFile={#SourcePath}..\Resources\art\wizard_logo_small.bmp
 UninstallDisplayName={#MyAppName}
 UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma
