@@ -99,7 +99,7 @@ Show::operator bool() const {
 
 } // namespace
 
-Controller::Controller() : Controller(CreateArgs{ nullptr }) {
+Controller::Controller() : Controller(CreateArgs{ nullptr, true }) {
 }
 
 Controller::Controller(SeparateId id, MsgId showAtMsgId)
@@ -111,6 +111,7 @@ Controller::Controller(SeparateId id, MsgId showAtMsgId)
 
 Controller::Controller(CreateArgs &&args)
 : _id(args.id)
+, _main(args.main)
 , _isActiveTimer([=] { updateIsActive(); })
 , _widget(this)
 , _adaptive(std::make_unique<Adaptive>()) {

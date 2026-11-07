@@ -9,6 +9,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "window/window_session_controller.h"
 #include "window/window_controller.h"
+#include "mainwindow.h"
 #include "main/main_account.h"
 #include "main/main_domain.h"
 #include "main/main_session.h"
@@ -20,11 +21,20 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_user.h"
 #include "mtproto/mtp_instance.h"
 #include "base/algorithm.h"
+#include "base/invoke_queued.h"
+#include "base/weak_qptr.h"
 #include "lang/lang_tag.h"
 #include "settings/sections/settings_information.h"
 #include "ui/painter.h"
+#include "ui/ui_utility.h"
 #include "ui/unread_badge_paint.h"
 #include "styles/style_window.h"
+
+#include <QtCore/QMimeData>
+#include <QtGui/QCursor>
+#include <QtWidgets/QApplication>
+
+#include <cstdlib>
 
 namespace Window {
 namespace {
@@ -35,6 +45,10 @@ namespace {
 
 // The vertical distance that turns a click into a drag of the account.
 constexpr auto kDragThreshold = 8;
+
+// The horizontal distance that turns a click into a drag of the account
+// out of the window.
+constexpr auto kDetachThreshold = 16;
 
 } // namespace
 
@@ -72,6 +86,18 @@ private:
 	void finishDrag(QPoint position);
 	void saveOrder();
 
+	void startDetach();
+	void performDetach();
+	void finishDetach(not_null<Main::Account*> account, QPoint position);
+	void detachAccount(not_null<Main::Account*> account, QPoint position);
+	void mergeAccount(
+		not_null<Main::Account*> account,
+		not_null<Controller*> target);
+	[[nodiscard]] Main::Account *otherAccount(
+		not_null<Main::Account*> account) const;
+	static void moveWindow(not_null<::MainWindow*> widget, QPoint position);
+	[[nodiscard]] static Controller *windowAt(QPoint position);
+
 	const not_null<AccountsRail*> _rail;
 	const not_null<SessionController*> _session;
 	std::vector<Entry> _entries;
@@ -79,6 +105,7 @@ private:
 	int _hovered = -1;
 	int _pressed = -1;
 	int _dragged = -1;
+	int _detached = -1;
 	QPoint _pressPosition;
 
 };
@@ -100,7 +127,7 @@ void AccountsRail::Inner::rebuild() {
 		}
 	}
 	_entries = std::move(entries);
-	_hovered = _pressed = _dragged = -1;
+	_hovered = _pressed = _dragged = _detached = -1;
 	unsetCursor();
 	setToolTip(QString());
 
@@ -184,7 +211,7 @@ void AccountsRail::Inner::paintEntry(Painter &p, int index, QRect rect) {
 	const auto active = (entry.account.get()
 		== &_session->session().account());
 
-	if (index == _hovered || index == _dragged) {
+	if (index == _hovered || index == _dragged || index == _detached) {
 		auto hq = PainterHighQualityEnabler(p);
 		p.setPen(Qt::NoPen);
 		p.setBrush(st::windowAccountsRailHover);
@@ -282,9 +309,17 @@ void AccountsRail::Inner::paintAdd(Painter &p, QRect rect) {
 }
 
 void AccountsRail::Inner::mouseMoveEvent(QMouseEvent *e) {
-	if (_pressed >= 0 && _dragged < 0) {
-		const auto delta = e->pos().y() - _pressPosition.y();
-		if (delta >= kDragThreshold || delta <= -kDragThreshold) {
+	if (_pressed >= 0 && _dragged < 0 && _detached < 0) {
+		const auto delta = e->pos() - _pressPosition;
+		const auto dx = std::abs(delta.x());
+		const auto dy = std::abs(delta.y());
+		if (dx > dy) {
+			// A horizontal drag pulls the account out of the window.
+			if (dx >= kDetachThreshold) {
+				startDetach();
+			}
+		} else if (dy >= kDragThreshold) {
+			// A vertical drag reorders the accounts.
 			startDrag();
 		}
 	}
@@ -308,6 +343,10 @@ void AccountsRail::Inner::mouseReleaseEvent(QMouseEvent *e) {
 	}
 	const auto pressed = _pressed;
 	_pressed = -1;
+	if (_detached >= 0) {
+		// The account is being dragged out of the window.
+		return;
+	}
 	if (_dragged >= 0) {
 		finishDrag(e->pos());
 		return;
@@ -346,6 +385,190 @@ void AccountsRail::Inner::finishDrag(QPoint position) {
 	unsetCursor();
 	saveOrder();
 	updateHovered(position);
+}
+
+void AccountsRail::Inner::startDetach() {
+	if (_pressed < 0 || addRow(_pressed)) {
+		return;
+	}
+	_detached = _pressed;
+	_hovered = -1;
+	setToolTip(QString());
+	unsetCursor();
+
+	InvokeQueued(this, [weak = base::make_weak(this)] {
+		if (!weak) {
+			return;
+		}
+		weak->performDetach();
+	});
+}
+
+void AccountsRail::Inner::performDetach() {
+	if (_detached < 0 || _detached >= int(_entries.size())) {
+		return;
+	}
+	if (!(QApplication::mouseButtons() & Qt::LeftButton)) {
+		// The mouse was released before the drag had started.
+		_detached = -1;
+		_pressed = -1;
+		return;
+	}
+	const auto account = _entries[_detached].account;
+
+	auto mimeData = std::make_unique<QMimeData>();
+	mimeData->setData(
+		u"application/x-telegram-account"_q,
+		QByteArray::number(account->session().uniqueId()));
+	mimeData->setText(account->session().user()->name());
+	const auto pixmap = Ui::GrabWidget(this, rowRect(_detached));
+
+	// The drag enters the event loop and may destroy this widget,
+	// so the weak pointer is created before the drag starts.
+	const auto weak = base::make_weak(this);
+
+	// This call enters the event loop and can destroy any QObject.
+	_session->window().widget()->launchDrag(
+		std::move(mimeData),
+		[account, weak] {
+			if (!weak) {
+				return;
+			}
+			weak->finishDetach(account, QCursor::pos());
+		},
+		pixmap);
+
+	// The window may have been destroyed by the drag.
+	if (weak) {
+		weak->_detached = -1;
+		weak->_pressed = -1;
+		weak->updateHovered(weak->mapFromGlobal(QCursor::pos()));
+	}
+}
+
+void AccountsRail::Inner::finishDetach(
+		not_null<Main::Account*> account,
+		QPoint position) {
+	const auto target = windowAt(position);
+	if (!target) {
+		// Dropped outside of any window, pull the account out.
+		detachAccount(account, position);
+		return;
+	}
+	if (target->id().account == account.get()) {
+		// This window already shows the account.
+		target->activate();
+		return;
+	}
+	if (!target->isPrimary()) {
+		// A window of a chat can not show this account.
+		return;
+	}
+	mergeAccount(account, target);
+}
+
+void AccountsRail::Inner::detachAccount(
+		not_null<Main::Account*> account,
+		QPoint position) {
+	// The account can get its own window only if no other window
+	// shows it now.
+	if (const auto showing = Core::App().separateWindowFor(
+			Window::SeparateId(account))) {
+		if (!showing->isMain()) {
+			// The account already has its own window, move it there.
+			showing->activate();
+			moveWindow(showing->widget(), position);
+			return;
+		}
+		const auto other = otherAccount(account);
+		if (!other) {
+			return;
+		}
+		// This may destroy the current widget.
+		showing->showAccount(not_null(other));
+	}
+	const auto window = Core::App().ensureSeparateWindowFor(
+		Window::SeparateId(account));
+	moveWindow(window->widget(), position);
+}
+
+void AccountsRail::Inner::mergeAccount(
+		not_null<Main::Account*> account,
+		not_null<Controller*> target) {
+	// The account must not be shown in two windows at once.
+	if (const auto showing = Core::App().separateWindowFor(
+			Window::SeparateId(account))) {
+		if (showing->isMain()) {
+			// The main window shows another account now, so that the
+			// target window is able to show this one.
+			const auto other = otherAccount(account);
+			if (!other) {
+				return;
+			}
+			// This may destroy the current widget.
+			showing->showAccount(not_null(other));
+		} else {
+			// The account leaves its own window, it is shown
+			// in the target window now.
+			Core::App().closeWindow(showing);
+		}
+	}
+	Core::App().setActivePrimaryWindow(target);
+	const auto domain = &Core::App().domain();
+	if (domain->started() && (&domain->active() != account.get())) {
+		// The domain shows the account in the active primary window.
+		domain->maybeActivate(account);
+	} else {
+		// The domain does not route the change by itself.
+		target->showAccount(account);
+	}
+}
+
+Main::Account *AccountsRail::Inner::otherAccount(
+		not_null<Main::Account*> account) const {
+	const auto domain = &Core::App().domain();
+	const auto shown = [](not_null<Main::Account*> candidate) {
+		return (Core::App().separateWindowFor(
+			Window::SeparateId(candidate)) != nullptr);
+	};
+	if (domain->started()
+		&& (&domain->active() != account.get())
+		&& !shown(not_null(&domain->active()))) {
+		return &domain->active();
+	}
+	for (const auto &candidate : domain->orderedAccounts()) {
+		if (candidate.get() != account.get()
+			&& candidate->sessionExists()
+			&& !shown(candidate)) {
+			return candidate.get();
+		}
+	}
+	return nullptr;
+}
+
+void AccountsRail::Inner::moveWindow(
+		not_null<::MainWindow*> widget,
+		QPoint position) {
+	InvokeQueued(widget, [widget, position] {
+		const auto margins = widget->frameMargins();
+		widget->move(position - QPoint(margins.left(), margins.top()));
+	});
+}
+
+Controller *AccountsRail::Inner::windowAt(QPoint position) {
+	if (const auto widget = QApplication::widgetAt(position)) {
+		if (const auto window = Core::App().findWindow(widget)) {
+			return window;
+		}
+	}
+	// Fall back to the geometry, the shadow margins are not hit-tested.
+	auto result = (Controller*)nullptr;
+	Core::App().enumerateWindows([&](not_null<Controller*> window) {
+		if (!result && window->widget()->geometry().contains(position)) {
+			result = window;
+		}
+	});
+	return result;
 }
 
 void AccountsRail::Inner::saveOrder() {

@@ -40,6 +40,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "mtproto/mtproto_config.h"
 #include "settings/sections/settings_advanced.h"
 #include "settings/sections/settings_calls.h"
+#include "settings/sections/settings_information.h"
 #include "storage/localstorage.h"
 #include "storage/storage_account.h"
 #include "support/support_templates.h"
