@@ -13,3 +13,7 @@ Telegram/Resources/zxcvbn/*.txt text eol=lf
 
 # Raw float tables, such as the 3D diamond model data
 *.bin binary
+
+# The packaged release binaries are stored with Git LFS: they are far over
+# the 100 MB per-file limit of a plain GitHub push.
+out/Release/*.exe filter=lfs diff=lfs merge=lfs -text
