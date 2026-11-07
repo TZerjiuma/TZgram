@@ -14,7 +14,4 @@ void SetupChangesSubscription(
 		[[maybe_unused]] rpl::lifetime &lifetime) {
 }
 
-void Fill([[maybe_unused]] Platform::Tray &tray) {
-}
-
 } // namespace Core::TrayAccountsMenu

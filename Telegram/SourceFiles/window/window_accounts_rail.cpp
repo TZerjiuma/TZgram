@@ -221,12 +221,11 @@ void AccountsRail::Inner::paintBadge(
 		const Entry &entry,
 		QRect rect) {
 	const auto &session = entry.account->session();
-	const auto count = session.data().unreadWithMentionsBadge();
+	const auto count = session.data().unreadMessagesBadge();
 	if (!count) {
 		return;
 	}
 	auto badgeStyle = Settings::Badge::Style();
-	badgeStyle.muted = session.data().unreadWithMentionsBadgeMuted();
 	const auto text = Lang::FormatCountToShort(count).string;
 	const auto size = Ui::CountUnreadBadgeSize(text, badgeStyle);
 

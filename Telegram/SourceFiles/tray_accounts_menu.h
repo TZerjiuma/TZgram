@@ -14,6 +14,5 @@ namespace Core::TrayAccountsMenu {
 void SetupChangesSubscription(
 	Fn<void()> callback,
 	rpl::lifetime &lifetime);
-void Fill(Platform::Tray &tray);
 
 } // namespace Core::TrayAccountsMenu

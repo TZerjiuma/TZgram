@@ -3639,6 +3639,26 @@ int Session::unreadWithMentionsBadge() const {
 	return computeUnreadBadge(state) + state.mentions;
 }
 
+int Session::unreadMessagesBadge() const {
+	// Ordinary unread messages and mentions of the chats that are not
+	// muted. The badges of the chats list count chats instead, but here
+	// we want the amount of the unread messages.
+	auto count = 0;
+	for (const auto &row : _chatsList.indexed()->all()) {
+		const auto entry = row->entry();
+		const auto state = entry->chatListUnreadState();
+		count += std::max(state.messages - state.messagesMuted, 0);
+		if (!state.mentions) {
+			continue;
+		}
+		const auto thread = entry->asThread();
+		if (!thread || !thread->muted()) {
+			count += state.mentions;
+		}
+	}
+	return count;
+}
+
 bool Session::unreadBadgeMuted() const {
 	return computeUnreadBadgeMuted(_chatsList.unreadState());
 }

@@ -683,6 +683,8 @@ public:
 
 	[[nodiscard]] int unreadBadge() const;
 	[[nodiscard]] int unreadWithMentionsBadge() const;
+	// Ordinary unread messages and mentions, ignoring muted chats.
+	[[nodiscard]] int unreadMessagesBadge() const;
 	[[nodiscard]] bool unreadBadgeMuted() const;
 	[[nodiscard]] bool unreadWithMentionsBadgeMuted() const;
 	[[nodiscard]] int unreadBadgeIgnoreOne(Dialogs::Key key) const;
