@@ -2778,9 +2778,18 @@ target_include_directories(Telegram PRIVATE ${src_loc})
 
 target_compile_definitions(Telegram
 PRIVATE
-    TDESKTOP_API_ID=${TDESKTOP_API_ID}
-    TDESKTOP_API_HASH=${TDESKTOP_API_HASH}
     G_LOG_DOMAIN="Telegram"
+)
+
+set(telegram_api_credentials_sources
+    ${src_loc}/core/crash_reports.cpp
+    ${src_loc}/data/components/passkeys.cpp
+    ${src_loc}/intro/intro_phone.cpp
+    ${src_loc}/intro/intro_qr.cpp
+    ${src_loc}/mtproto/session_private.cpp
+)
+set_source_files_properties(${telegram_api_credentials_sources} PROPERTIES
+    COMPILE_DEFINITIONS "TDESKTOP_API_ID=${TDESKTOP_API_ID};TDESKTOP_API_HASH=${TDESKTOP_API_HASH}"
 )
 
 get_property(is_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)

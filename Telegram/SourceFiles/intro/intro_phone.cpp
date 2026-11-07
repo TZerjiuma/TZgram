@@ -24,6 +24,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/boxes/confirm_box.h"
 #include "boxes/abstract_box.h"
 #include "boxes/phone_banned_box.h"
+#include "core/api_credentials.h"
 #include "core/application.h"
 #include "window/window_controller.h"
 #include "window/window_session_controller.h"
