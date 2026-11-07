@@ -1,4 +1,4 @@
-/out/
+/out/*
 Debug/
 Release/
 /ThirdParty/
@@ -116,3 +116,16 @@ build.bat
 *.ps1
 *.sh
 *.py
+
+# ---- Published release artifacts (out/Release) ---------------------------
+# The packaged app and the installer are published from this repository, so
+# out/Release is tracked while the rest of the build tree stays ignored.
+# The .pdb (multi-GB), the local tdata (account sessions and keys) and the
+# build logs never leave the machine.
+!/out/Release/
+/out/Release/*
+!/out/Release/*.exe
+/out/Release/*.pdb
+/out/Release/tdata/
+/out/Release/modules/
+/out/Release/log.txt
