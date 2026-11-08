@@ -57,9 +57,9 @@
 
 3. 弹出确认窗口，点「是」确认即可。
 
-## 许可
+## 许可声明
 
-源码基于 [Telegram 官方桌面端][tdesktop] 发布，遵循 **GPLv3 with OpenSSL exception**，许可证见 [LICENSE][license]；二次开发部分的改动同样以该许可证发布。
+TZgram 是基于 [Telegram 官方桌面端][tdesktop] 的非官方修改版。原项目的版权归其原作者所有；ONEBOAT 的二次开发改动同样按 **GNU GPL 第 3 版或更新版本及 OpenSSL 例外条款** 发布。使用、修改或再分发本项目时，请遵守 [LICENSE][license] 和 [LEGAL](LEGAL) 中的许可与版权声明。本软件按现状提供，不附带任何担保。
 
 免费代理列表来自 [Free-Telegram-Proxy](https://github.com/0xRadikal/Free-Telegram-Proxy)，该项目遵循 [MIT 许可证](https://github.com/0xRadikal/Free-Telegram-Proxy/blob/master/LICENSE)。
 
