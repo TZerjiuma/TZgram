@@ -121,22 +121,10 @@ AccountsRail::Inner::Inner(
 
 void AccountsRail::Inner::rebuild() {
 	auto entries = std::vector<Entry>();
-	const auto mine = &_session->session().account();
 	for (const auto &account : Core::App().domain().orderedAccounts()) {
-		if (!account->sessionExists()) {
-			continue;
+		if (account->sessionExists()) {
+			entries.push_back({ account });
 		}
-		// Keep an account out of the rail if it lives in its own window,
-		// but always keep the account that this window currently shows.
-		if (account.get() != mine) {
-			if (const auto showing = Core::App().separateWindowFor(
-					Window::SeparateId(account))) {
-				if (!showing->isMain()) {
-					continue;
-				}
-			}
-		}
-		entries.push_back({ account });
 	}
 	_entries = std::move(entries);
 	_hovered = _pressed = _dragged = _detached = -1;
