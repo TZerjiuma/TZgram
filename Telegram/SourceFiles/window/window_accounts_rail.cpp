@@ -460,10 +460,6 @@ void AccountsRail::Inner::finishDetach(
 		target->activate();
 		return;
 	}
-	if (!target->isPrimary()) {
-		// A window of a chat can not show this account.
-		return;
-	}
 	mergeAccount(account, target);
 }
 
