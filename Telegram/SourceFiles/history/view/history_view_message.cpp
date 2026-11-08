@@ -3938,6 +3938,13 @@ TextState Message::textState(
 	if (g.width() < 1 || isHidden()) {
 		return result;
 	}
+	// The translation button sits outside the bubble. Handle it before
+	// bubble content (including text and comments) can consume the click.
+	if (const auto rect = translateButtonRect(); !rect.isEmpty()
+		&& rect.contains(point)) {
+		result.link = translateButtonLink();
+		return result;
+	}
 
 	if (const auto service = Get<ServicePreMessage>()) {
 		result.link = service->textState(point, request, g);
@@ -4172,11 +4179,6 @@ TextState Message::textState(
 			).contains(point)) {
 				result.link = rightActionLink(point
 					- QPoint(fastShareLeft, fastShareTop));
-			}
-		}
-		if (const auto rect = translateButtonRect(); !rect.isEmpty()) {
-			if (rect.contains(point)) {
-				result.link = translateButtonLink();
 			}
 		}
 		if (_summarize && _summarize->contains(point)) {
@@ -6099,7 +6101,8 @@ namespace {
 
 void RequestInlineTranslation(
 		not_null<Main::Session*> session,
-		not_null<HistoryItem*> item) {
+		not_null<HistoryItem*> item,
+		base::weak_ptr<Window::SessionController> window) {
 	LOG(("BUBBLE-TRANSLATE clicked, out=%1").arg(item->out()));
 	if (item->translationInlineShown()) {
 		item->translationInlineRevert();
@@ -6120,15 +6123,13 @@ void RequestInlineTranslation(
 		item->translationInlineDone(to, TextWithEntities());
 		return;
 	}
-	const auto request = item->out()
-		? Ui::TranslateProviderRequest{
-			.text = item->originalText(),
-		}
-		: Ui::PrepareTranslateProviderRequest(
-			provider.get(),
-			item->history()->peer,
-			item->fullId().msg,
-			item->originalText());
+	// Ask the server to translate the stored message by peer + message id,
+	// the same way the "Translate" box and the whole-chat translation do.
+	const auto request = Ui::PrepareTranslateProviderRequest(
+		provider.get(),
+		item->history()->peer,
+		item->fullId().msg,
+		item->originalText());
 	const auto fullId = item->fullId();
 	const auto weak = base::make_weak(session);
 	provider->request(request, to, [=](Ui::TranslateProviderResult result) {
@@ -6141,11 +6142,25 @@ void RequestInlineTranslation(
 		}
 		const auto resolved = strong->data().message(fullId);
 		if (!resolved) {
+			LOG(("BUBBLE-TRANSLATE result ignored: message missing"));
 			return;
+		}
+		LOG(("BUBBLE-TRANSLATE result: out=%1, chars=%2, rich=%3")
+			.arg(resolved->out())
+			.arg(result.text ? result.text->text.size() : -1)
+			.arg(bool(resolved->richPage())));
+		if (!result.text) {
+			LOG(("BUBBLE-TRANSLATE failed, error=%1")
+				.arg(int(result.error)));
+			if (const auto controller = window.get()) {
+				controller->showToast(tr::lng_translate_box_error(tr::now));
+			}
 		}
 		resolved->translationInlineDone(to, result.text
 			? std::move(*result.text)
 			: TextWithEntities());
+		LOG(("BUBBLE-TRANSLATE applied: shown=%1")
+			.arg(resolved->translationInlineShown()));
 	});
 }
 
@@ -6167,7 +6182,11 @@ ClickHandlerPtr Message::translateButtonLink() const {
 				if (!item) {
 					return;
 				}
-				RequestInlineTranslation(&controller->session(), item);
+				const auto my = context.other.value<ClickHandlerContext>();
+				RequestInlineTranslation(
+					&controller->session(),
+					item,
+					my.sessionWindow);
 			});
 	}
 	return _translateButtonLink;
