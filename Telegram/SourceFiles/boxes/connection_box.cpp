@@ -1861,6 +1861,27 @@ ProxiesBoxController::ProxiesBoxController(not_null<Main::Account*> account)
 	_settings.connectionTypeChanges(
 	) | rpl::on_next([=] {
 		_proxySettingsChanges.fire_copy(_settings.settings());
+		const auto &settingsList = _settings.list();
+		const auto sameSize = (settingsList.size() == _list.size());
+		const auto sameContent = sameSize && ranges::equal(
+			settingsList,
+			_list,
+			[](const ProxyData &a, const Item &b) {
+				return (a == b.data);
+			});
+		if (!sameContent) {
+			// The list was replaced from outside (free proxy fetch).
+			for (const auto &item : _list) {
+				_views.fire(ItemView{ item.id });
+			}
+			_list.clear();
+			_list.reserve(settingsList.size());
+			for (const auto &proxy : settingsList) {
+				auto &item = _list.emplace_back(Item{ ++_idCounter, proxy });
+				refreshChecker(item);
+				updateView(item);
+			}
+		}
 		const auto i = findByProxy(_settings.selected());
 		if (i != end(_list)) {
 			updateView(*i);
