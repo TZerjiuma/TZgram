@@ -129,7 +129,7 @@ void AccountsRail::Inner::rebuild() {
 		}
 	} else {
 		// A detached window shows only its own account.
-		const auto account = &_session->session().account();
+		const auto account = &_session->window().account();
 		if (account->sessionExists()) {
 			entries.push_back({ not_null(account) });
 		}
@@ -198,7 +198,8 @@ void AccountsRail::Inner::updateHovered(QPoint position) {
 	}
 	_hovered = index;
 	if (index >= 0 && !addRow(index)) {
-		setToolTip(_entries[index].account->session().user()->name());
+		const auto session = _entries[index].account->maybeSession();
+		setToolTip(session ? session->user()->name() : QString());
 	} else {
 		setToolTip(QString());
 	}
@@ -217,11 +218,15 @@ void AccountsRail::Inner::paintEvent(QPaintEvent *e) {
 
 void AccountsRail::Inner::paintEntry(Painter &p, int index, QRect rect) {
 	auto &entry = _entries[index];
+	const auto session = entry.account->maybeSession();
+	if (!session) {
+		return;
+	}
 	const auto photo = st::windowAccountsRailPhoto;
 	const auto skip = st::windowAccountsRailSkip;
 	const auto full = RowFull();
 	const auto active = (entry.account.get()
-		== &_session->session().account());
+		== &_session->window().account());
 
 	if (index == _hovered || index == _dragged || index == _detached) {
 		auto hq = PainterHighQualityEnabler(p);
@@ -229,7 +234,7 @@ void AccountsRail::Inner::paintEntry(Painter &p, int index, QRect rect) {
 		p.setBrush(st::windowAccountsRailHover);
 		p.drawEllipse(rect);
 	}
-	entry.account->session().user()->paintUserpicLeft(
+	session->user()->paintUserpicLeft(
 		p,
 		entry.view,
 		rect.x() + skip,
@@ -259,8 +264,11 @@ void AccountsRail::Inner::paintBadge(
 		Painter &p,
 		const Entry &entry,
 		QRect rect) {
-	const auto &session = entry.account->session();
-	const auto count = session.data().unreadMessagesBadge();
+	const auto session = entry.account->maybeSession();
+	if (!session) {
+		return;
+	}
+	const auto count = session->data().unreadMessagesBadge();
 	if (!count) {
 		return;
 	}
@@ -427,6 +435,9 @@ void AccountsRail::Inner::performDetach() {
 		return;
 	}
 	const auto account = _entries[_detached].account;
+	if (!account->sessionExists()) {
+		return;
+	}
 
 	auto mimeData = std::make_unique<QMimeData>();
 	mimeData->setData(
@@ -530,12 +541,15 @@ void AccountsRail::Inner::saveOrder() {
 	auto order = std::vector<uint64>();
 	order.reserve(_entries.size());
 	for (const auto &entry : _entries) {
-		order.push_back(entry.account->session().uniqueId());
+		if (const auto session = entry.account->maybeSession()) {
+			order.push_back(session->uniqueId());
+		}
 	}
 	// Keep the accounts that are not shown in the rail at the end.
 	for (const auto &account : Core::App().domain().orderedAccounts()) {
-		if (!account->sessionExists()) {
-			order.push_back(account->session().uniqueId());
+		if (const auto session = account->maybeSession()
+			; session && !ranges::contains(order, session->uniqueId())) {
+			order.push_back(session->uniqueId());
 		}
 	}
 	Core::App().settings().setAccountsOrder(order);
@@ -561,7 +575,8 @@ void AccountsRail::Inner::activate(
 		return;
 	}
 	const auto account = _entries[index].account;
-	if (account.get() == &_session->session().account()) {
+	if (!account->sessionExists()
+		|| account.get() == &_session->window().account()) {
 		return;
 	} else if (modifiers & Qt::ControlModifier) {
 		Core::App().ensureSeparateWindowFor(account);
