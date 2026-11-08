@@ -665,6 +665,13 @@ protected:
 	void keyPressEvent(QKeyEvent *e) override;
 
 private:
+	enum class ProxyMode {
+		Disabled,
+		System,
+		Custom,
+		Free,
+	};
+
 	void setupContent();
 	void setupTopButton();
 	void createNoRowsLabel();
@@ -674,11 +681,12 @@ private:
 	int rowHeight() const;
 	void refreshProxyForCalls();
 	void refreshProxyRotation();
+	void refreshFreeProxyRefresh();
 
 	not_null<ProxiesBoxController*> _controller;
 	Core::SettingsProxy &_settings;
 	QPointer<Ui::Checkbox> _tryIPv6;
-	std::shared_ptr<Ui::RadioenumGroup<ProxyData::Settings>> _proxySettings;
+	std::shared_ptr<Ui::RadioenumGroup<ProxyMode>> _proxySettings;
 	QPointer<Ui::SlideWrap<Ui::Checkbox>> _proxyForCalls;
 	QPointer<Ui::SlideWrap<Ui::Checkbox>> _proxyRotation;
 	QPointer<Ui::SlideWrap<Ui::VerticalLayout>> _proxyRotationOptions;
@@ -693,6 +701,7 @@ private:
 
 	QPointer<Ui::RpWidget> _addProxyButton;
 	QPointer<Ui::RpWidget> _shareListButton;
+	QPointer<Ui::SlideWrap<Ui::VerticalLayout>> _freeProxyRefresh;
 	QString _highlightId;
 
 };
@@ -1185,29 +1194,53 @@ void ProxiesBox::setupContent() {
 			tr::lng_connection_try_ipv6(tr::now),
 			_settings.tryIPv6()),
 		st::proxyTryIPv6Padding);
-	_proxySettings
-		= std::make_shared<Ui::RadioenumGroup<ProxyData::Settings>>(
-			_settings.settings());
+	const auto modeFromSettings = [](ProxyData::Settings value) {
+		switch (value) {
+		case ProxyData::Settings::Disabled: return ProxyMode::Disabled;
+		case ProxyData::Settings::System: return ProxyMode::System;
+		case ProxyData::Settings::Enabled: return ProxyMode::Custom;
+		}
+		return ProxyMode::System;
+	};
+	const auto settingsFromMode = [](ProxyMode mode) {
+		switch (mode) {
+		case ProxyMode::Disabled: return ProxyData::Settings::Disabled;
+		case ProxyMode::System: return ProxyData::Settings::System;
+		case ProxyMode::Custom:
+		case ProxyMode::Free: return ProxyData::Settings::Enabled;
+		}
+		return ProxyData::Settings::System;
+	};
+
+	_proxySettings = std::make_shared<Ui::RadioenumGroup<ProxyMode>>(
+		modeFromSettings(_settings.settings()));
 	inner->add(
-		object_ptr<Ui::Radioenum<ProxyData::Settings>>(
+		object_ptr<Ui::Radioenum<ProxyMode>>(
 			inner,
 			_proxySettings,
-			ProxyData::Settings::Disabled,
+			ProxyMode::Disabled,
 			tr::lng_proxy_disable(tr::now)),
 		st::proxyUsePadding);
 	inner->add(
-		object_ptr<Ui::Radioenum<ProxyData::Settings>>(
+		object_ptr<Ui::Radioenum<ProxyMode>>(
 			inner,
 			_proxySettings,
-			ProxyData::Settings::System,
+			ProxyMode::System,
 			tr::lng_proxy_use_system_settings(tr::now)),
 		st::proxyUsePadding);
 	inner->add(
-		object_ptr<Ui::Radioenum<ProxyData::Settings>>(
+		object_ptr<Ui::Radioenum<ProxyMode>>(
 			inner,
 			_proxySettings,
-			ProxyData::Settings::Enabled,
+			ProxyMode::Custom,
 			tr::lng_proxy_use_custom(tr::now)),
+		st::proxyUsePadding);
+	inner->add(
+		object_ptr<Ui::Radioenum<ProxyMode>>(
+			inner,
+			_proxySettings,
+			ProxyMode::Free,
+			tr::lng_proxy_free_list(tr::now)),
 		st::proxyUsePadding);
 	_proxyForCalls = inner->add(
 		object_ptr<Ui::SlideWrap<Ui::Checkbox>>(
@@ -1283,13 +1316,21 @@ void ProxiesBox::setupContent() {
 		inner,
 		st::proxyRowPadding.bottom()));
 
-	_proxySettings->setChangedCallback([=](ProxyData::Settings value) {
-		if (!_controller->setProxySettings(value)) {
-			_proxySettings->setValue(_settings.settings());
+	_proxySettings->setChangedCallback([=](ProxyMode mode) {
+		if (mode == ProxyMode::Free) {
+			Core::App().refreshFreeProxies();
+			refreshProxyForCalls();
+			refreshProxyRotation();
+			refreshFreeProxyRefresh();
+			return;
+		}
+		if (!_controller->setProxySettings(settingsFromMode(mode))) {
+			_proxySettings->setValue(modeFromSettings(_settings.settings()));
 			addNewProxy();
 		}
 		refreshProxyForCalls();
 		refreshProxyRotation();
+		refreshFreeProxyRefresh();
 	});
 	_tryIPv6->checkedChanges(
 	) | rpl::on_next([=](bool checked) {
@@ -1298,9 +1339,10 @@ void ProxiesBox::setupContent() {
 
 	_controller->proxySettingsValue(
 	) | rpl::on_next([=](ProxyData::Settings value) {
-		_proxySettings->setValue(value);
+		_proxySettings->setValue(modeFromSettings(value));
 		refreshProxyForCalls();
 		refreshProxyRotation();
+		refreshFreeProxyRefresh();
 	}, inner->lifetime());
 
 	_proxyForCalls->entity()->checkedChanges(
@@ -1328,14 +1370,22 @@ void ProxiesBox::setupContent() {
 	_proxyRotationOptions->finishAnimating();
 
 	{
-		const auto freeProxy = Settings::AddButtonWithIcon(
-			inner,
-			tr::lng_proxy_free_list(),
+		_freeProxyRefresh = inner->add(
+			object_ptr<Ui::SlideWrap<Ui::VerticalLayout>>(
+				inner,
+				object_ptr<Ui::VerticalLayout>(inner)));
+		const auto refresh = Settings::AddButtonWithIcon(
+			_freeProxyRefresh->entity(),
+			tr::lng_proxy_free_refresh(),
 			st::settingsButton,
 			{ &st::menuIconRestartBot });
-		freeProxy->setClickedCallback([=] {
+		refresh->setClickedCallback([=] {
 			Core::App().refreshFreeProxies();
 		});
+		_freeProxyRefresh->toggle(
+			_proxySettings->current() == ProxyMode::Free,
+			anim::type::instant);
+		_freeProxyRefresh->finishAnimating();
 	}
 
 	{
@@ -1375,9 +1425,10 @@ void ProxiesBox::refreshProxyForCalls() {
 	if (!_proxyForCalls) {
 		return;
 	}
+	const auto custom = (_proxySettings->current() == ProxyMode::Custom
+		|| _proxySettings->current() == ProxyMode::Free);
 	_proxyForCalls->toggle(
-		(_proxySettings->current() == ProxyData::Settings::Enabled
-			&& _currentProxySupportsCallsId != 0),
+		(custom && _currentProxySupportsCallsId != 0),
 		anim::type::normal);
 }
 
@@ -1385,13 +1436,23 @@ void ProxiesBox::refreshProxyRotation() {
 	if (!_proxyRotation || !_proxyRotationOptions) {
 		return;
 	}
-	const auto visible = (_proxySettings->current()
-			== ProxyData::Settings::Enabled)
+	const auto custom = (_proxySettings->current() == ProxyMode::Custom
+		|| _proxySettings->current() == ProxyMode::Free);
+	const auto visible = custom
 		&& _settings.selected()
 		&& (_settings.list().size() > 1);
 	_proxyRotation->toggle(visible, anim::type::normal);
 	_proxyRotationOptions->toggle(
 		visible && _proxyRotation->entity()->checked(),
+		anim::type::normal);
+}
+
+void ProxiesBox::refreshFreeProxyRefresh() {
+	if (!_freeProxyRefresh) {
+		return;
+	}
+	_freeProxyRefresh->toggle(
+		_proxySettings->current() == ProxyMode::Free,
 		anim::type::normal);
 }
 

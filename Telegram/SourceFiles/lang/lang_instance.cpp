@@ -47,6 +47,11 @@ constexpr ForkTranslation kForkTranslations[] = {
 		"zh",
 		"lng_proxy_free_list",
 		"免费代理"
+	},
+	{
+		"zh",
+		"lng_proxy_free_refresh",
+		"刷新列表"
 	}
 };
 
