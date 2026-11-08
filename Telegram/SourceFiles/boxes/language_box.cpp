@@ -1656,7 +1656,6 @@ void LanguageBox::setupTop(not_null<Ui::VerticalLayout*> container) {
 			}));
 	});
 
-#if 0 // Fork: hide the "bubble" (skip languages) setting button.
 	using Languages = std::vector<LanguageId>;
 	const auto translateSkipWrap = container->add(
 		object_ptr<Ui::SlideWrap<Ui::VerticalLayout>>(
@@ -1686,7 +1685,6 @@ void LanguageBox::setupTop(not_null<Ui::VerticalLayout*> container) {
 	});
 	Ui::AddSkip(container);
 	Ui::AddDividerText(container, tr::lng_translate_settings_about());
-#endif // 0
 }
 
 void LanguageBox::keyPressEvent(QKeyEvent *e) {
