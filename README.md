@@ -60,6 +60,8 @@
 
 源码基于 [Telegram 官方桌面端][tdesktop] 发布，遵循 **GPLv3 with OpenSSL exception**，许可证见 [LICENSE][license]；二次开发部分的改动同样以该许可证发布。
 
+免费代理列表来自 [Free-Telegram-Proxy](https://github.com/0xRadikal/Free-Telegram-Proxy)，该项目遵循 [MIT 许可证](https://github.com/0xRadikal/Free-Telegram-Proxy/blob/master/LICENSE)。
+
 [//]: # (LINKS)
 [tdesktop]: https://github.com/telegramdesktop/tdesktop
 [license]: LICENSE
