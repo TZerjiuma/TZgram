@@ -56,51 +56,10 @@
 
 「免费代理」功能抓取的 MTProto 代理列表来自 [Free-Telegram-Proxy](https://github.com/0xRadikal/Free-Telegram-Proxy)。
 
-## 编译
-
-依赖 Visual Studio 2022、CMake、Qt 6.11 及官方文档 [Building the desktop version][tdesktop-build] 中列出的其他依赖。
-
-1. 创建 `.env` 文件，写入：
-   ```
-   api_id=你的api_id
-   api_hash=你的api_hash
-   version=7.5.1
-   ```
-2. 运行 `build.bat` 编译（增量）
-3. 需要签名打包时运行 `build.bat package`（可选）
-4. 改了 `version` 的话，同步一次版本文件（脚本在仓库外的 `tzgram-signing/` 里）：
-   ```
-   python tzgram-signing\tzgram-env.py --sync
-   ```
-   它把 `.env` 里的版本号写进仓库的 5 个版本文件（程序文件名、程序里显示的版本、
-   PE 资源里的 FileVersion）。不跑这一步的话，程序还是旧版本号。
-
-## 签名与打包
-
-`build.bat package` 会依次：编译 → 签名主程序 → 打安装包 → 签名安装包。
-
-签名密钥**不在仓库里**（是真凭据，不能进 git），换机器需手动搬运。需要的东西：
-
-1. 仓库外的签名目录 `tzgram-signing/`：
-   - `codesign.pfx` —— 签名私钥
-   - `TZgram.cer` —— 公钥证书
-   - `sign-and-package.bat` —— 签名 + 打包脚本
-2. `.env` 里的签名配置（键名，值为本机路径）：
-   ```
-   sign_pfx=D:\bot\telegram\tzgram-signing\codesign.pfx
-   sign_password=你的签名密码
-   sign_cert=D:\bot\telegram\tzgram-signing\TZgram.cer
-   sign_timestamp=http://timestamp.digicert.com
-   signtool=C:\Program Files (x86)\Windows Kits\10\bin\...\x64\signtool.exe
-   iscc=C:\Program Files\Inno Setup 7\ISCC.exe
-   ```
-3. 外部工具：Inno Setup 7（打安装包）、signtool（Windows SDK 自带）。
-
 ## 许可
 
 源码基于 [Telegram 官方桌面端][tdesktop] 发布，遵循 **GPLv3 with OpenSSL exception**，许可证见 [LICENSE][license]；二次开发部分的改动同样以该许可证发布。
 
 [//]: # (LINKS)
 [tdesktop]: https://github.com/telegramdesktop/tdesktop
-[tdesktop-build]: https://github.com/telegramdesktop/tdesktop#building-the-desktop-version
 [license]: LICENSE
