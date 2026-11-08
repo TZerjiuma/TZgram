@@ -1862,13 +1862,17 @@ ProxiesBoxController::ProxiesBoxController(not_null<Main::Account*> account)
 	) | rpl::on_next([=] {
 		_proxySettingsChanges.fire_copy(_settings.settings());
 		const auto &settingsList = _settings.list();
-		const auto sameSize = (settingsList.size() == _list.size());
-		const auto sameContent = sameSize && ranges::equal(
-			settingsList,
-			_list,
-			[](const ProxyData &a, const Item &b) {
-				return (a == b.data);
-			});
+		const auto sameContent = [&] {
+			if (settingsList.size() != _list.size()) {
+				return false;
+			}
+			for (auto i = 0; i != int(settingsList.size()); ++i) {
+				if (!(settingsList[i] == _list[i].data)) {
+					return false;
+				}
+			}
+			return true;
+		}();
 		if (!sameContent) {
 			// The list was replaced from outside (free proxy fetch).
 			for (const auto &item : _list) {
