@@ -6099,7 +6099,12 @@ void RequestInlineTranslation(
 		item->translationInlineRevert();
 		return;
 	}
-	const auto to = Ui::ChooseTranslateTo(item->history());
+	// Translate messages into the "Don't translate" language (the language
+	// the user wants messages in), independent of the compose target.
+	const auto skip = Core::App().settings().skipTranslationLanguages();
+	const auto to = skip.empty()
+		? Ui::ChooseTranslateTo(item->history())
+		: skip.front();
 	if (!item->translationInlineRequest(to)) {
 		return;
 	}
@@ -6109,11 +6114,9 @@ void RequestInlineTranslation(
 		item->translationInlineDone(to, TextWithEntities());
 		return;
 	}
-	const auto request = Ui::PrepareTranslateProviderRequest(
-		provider.get(),
-		item->history()->peer,
-		item->fullId().msg,
-		item->originalText());
+	const auto request = Ui::TranslateProviderRequest{
+		.text = item->originalText(),
+	};
 	const auto fullId = item->fullId();
 	const auto weak = base::make_weak(session);
 	provider->request(request, to, [=](Ui::TranslateProviderResult result) {
