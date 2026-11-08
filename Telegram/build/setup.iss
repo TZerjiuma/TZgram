@@ -32,7 +32,7 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={%USERPROFILE}\{#MyAppName}
+DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 OutputDir={#ReleasePath}
@@ -43,7 +43,7 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma
 SolidCompression=yes
 DisableStartupPrompt=yes
-PrivilegesRequired=lowest
+PrivilegesRequired=admin
 VersionInfoVersion={#MyAppVersion}.0
 CloseApplications=force
 DisableDirPage=no
@@ -141,16 +141,16 @@ Type: filesandordirs; Name: "{app}\tcache"
 Type: filesandordirs; Name: "{app}\tdumps"
 Type: filesandordirs; Name: "{app}\modules"
 Type: dirifempty; Name: "{app}"
-Type: files; Name: "{%USERPROFILE}\{#MyAppName}\data"
-Type: files; Name: "{%USERPROFILE}\{#MyAppName}\data_config"
-Type: files; Name: "{%USERPROFILE}\{#MyAppName}\log.txt"
-Type: filesandordirs; Name: "{%USERPROFILE}\{#MyAppName}\DebugLogs"
-Type: filesandordirs; Name: "{%USERPROFILE}\{#MyAppName}\tupdates"
-Type: filesandordirs; Name: "{%USERPROFILE}\{#MyAppName}\tdata"
-Type: filesandordirs; Name: "{%USERPROFILE}\{#MyAppName}\tcache"
-Type: filesandordirs; Name: "{%USERPROFILE}\{#MyAppName}\tdumps"
-Type: filesandordirs; Name: "{%USERPROFILE}\{#MyAppName}\modules"
-Type: dirifempty; Name: "{%USERPROFILE}\{#MyAppName}"
+Type: files; Name: "{autopf}\{#MyAppName}\data"
+Type: files; Name: "{autopf}\{#MyAppName}\data_config"
+Type: files; Name: "{autopf}\{#MyAppName}\log.txt"
+Type: filesandordirs; Name: "{autopf}\{#MyAppName}\DebugLogs"
+Type: filesandordirs; Name: "{autopf}\{#MyAppName}\tupdates"
+Type: filesandordirs; Name: "{autopf}\{#MyAppName}\tdata"
+Type: filesandordirs; Name: "{autopf}\{#MyAppName}\tcache"
+Type: filesandordirs; Name: "{autopf}\{#MyAppName}\tdumps"
+Type: filesandordirs; Name: "{autopf}\{#MyAppName}\modules"
+Type: dirifempty; Name: "{autopf}\{#MyAppName}"
 
 [Code]
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
