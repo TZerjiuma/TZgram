@@ -1161,7 +1161,8 @@ void MainWindow::launchDrag(
 	KUrlMimeData::exportUrlsToPortal(data.get());
 	drag->setMimeData(data.release());
 	if (!pixmap.isNull()) {
-		drag->setPixmap(std::move(pixmap));
+		drag->setPixmap(pixmap);
+		drag->setDragCursor(pixmap, Qt::CopyAction);
 	}
 	drag->exec(Qt::CopyAction);
 
