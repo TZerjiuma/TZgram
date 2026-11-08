@@ -64,9 +64,8 @@ void FreeProxyManager::applyList(const QString &text) {
 	}
 	auto &settings = Core::App().settings().proxy();
 	settings.setList(std::move(proxies));
-	Core::App().setCurrentProxy(
-		settings.list().front(),
-		MTP::ProxyData::Settings::Enabled);
+	// Refresh the list only, do not auto-enable a proxy.
+	settings.connectionTypeChangesNotify();
 }
 
 } // namespace Core
