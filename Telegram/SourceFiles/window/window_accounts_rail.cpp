@@ -122,12 +122,21 @@ AccountsRail::Inner::Inner(
 void AccountsRail::Inner::rebuild() {
 	auto entries = std::vector<Entry>();
 	const auto mine = &_session->session().account();
+	const auto mineWindow = Core::App().separateWindowFor(
+		Window::SeparateId(not_null(mine)));
+	const auto detached = (mineWindow && !mineWindow->isMain());
 	for (const auto &account : Core::App().domain().orderedAccounts()) {
 		if (!account->sessionExists()) {
 			continue;
 		}
-		// Keep an account out of the rail if it lives in its own window,
-		// but always keep the account that this window currently shows.
+		if (detached) {
+			// This window was pulled out on its own: show only its account.
+			if (account.get() == mine) {
+				entries.push_back({ account });
+			}
+			continue;
+		}
+		// Main window: keep out accounts that live in their own window.
 		if (account.get() != mine) {
 			if (const auto showing = Core::App().separateWindowFor(
 					Window::SeparateId(account))) {
@@ -461,11 +470,14 @@ void AccountsRail::Inner::performDetach() {
 void AccountsRail::Inner::finishDetach(
 		not_null<Main::Account*> account,
 		QPoint position) {
+	const auto weak = base::make_weak(this);
 	const auto target = windowAt(position);
 	if (!target) {
 		// Dropped outside of any window, pull the account out.
 		detachAccount(account, position);
-		crl::on_main(this, [=] { rebuild(); });
+		if (weak) {
+			weak->rebuild();
+		}
 		return;
 	}
 	if (target->id().account == account.get()) {
@@ -474,7 +486,9 @@ void AccountsRail::Inner::finishDetach(
 		return;
 	}
 	mergeAccount(account, target);
-	crl::on_main(this, [=] { rebuild(); });
+	if (weak) {
+		weak->rebuild();
+	}
 }
 
 void AccountsRail::Inner::detachAccount(
