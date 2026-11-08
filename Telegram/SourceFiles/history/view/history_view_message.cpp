@@ -6110,6 +6110,8 @@ void RequestInlineTranslation(
 	const auto to = skip.empty()
 		? Ui::ChooseTranslateTo(item->history())
 		: skip.front();
+	LOG(("Translate bubble request: to=%1, text_len=%2").arg(
+		to.twoLetterCode()).arg(item->originalText().text.size()));
 	if (!item->translationInlineRequest(to)) {
 		return;
 	}
@@ -6136,6 +6138,7 @@ void RequestInlineTranslation(
 		if (!resolved) {
 			return;
 		}
+		LOG(("Translate bubble result: empty=%1").arg(!result.text));
 		resolved->translationInlineDone(to, result.text
 			? std::move(*result.text)
 			: TextWithEntities());
