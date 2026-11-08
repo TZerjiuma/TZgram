@@ -794,6 +794,7 @@ historyTranslateLabel: FlatLabel(defaultFlatLabel) {
 	minWidth: 80px;
 }
 historyTranslateIcon: icon{{ "menu/translate", windowActiveTextFg }};
+historyTranslateIconDone: icon{{ "menu/translate", msgServiceFg }};
 historyTranslateBarHeight: 36px;
 historyTranslateSettings: IconButton(defaultIconButton) {
 	width: 46px;
