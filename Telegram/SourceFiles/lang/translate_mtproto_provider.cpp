@@ -106,8 +106,11 @@ public:
 				MTP_string(to.twoLetterCode()),
 				MTPstring() // tone
 			)).done([=](const MTPmessages_TranslatedText &result) {
+				LOG(("Translate peer+id OK: %1 result(s)").arg(
+					result.data().vresult().v.size()));
 				doneFromList(result.data().vresult().v);
-			}).fail([=](const MTP::Error &) {
+			}).fail([=](const MTP::Error &error) {
+				LOG(("Translate peer+id FAIL: %1").arg(error.type()));
 				failAll();
 			}).send();
 			return;
