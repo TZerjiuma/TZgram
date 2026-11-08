@@ -90,13 +90,9 @@ private:
 	void performDetach();
 	void finishDetach(not_null<Main::Account*> account, QPoint position);
 	void detachAccount(not_null<Main::Account*> account, QPoint position);
-	void mergeAccount(
-		not_null<Main::Account*> account,
-		not_null<Controller*> target);
 	[[nodiscard]] Main::Account *otherAccount(
 		not_null<Main::Account*> account) const;
 	static void moveWindow(not_null<::MainWindow*> widget, QPoint position);
-	[[nodiscard]] static Controller *windowAt(QPoint position);
 
 	const not_null<AccountsRail*> _rail;
 	const not_null<SessionController*> _session;
@@ -107,6 +103,7 @@ private:
 	int _dragged = -1;
 	int _detached = -1;
 	QPoint _pressPosition;
+	bool _showAdd = true;
 
 };
 
@@ -121,9 +118,20 @@ AccountsRail::Inner::Inner(
 
 void AccountsRail::Inner::rebuild() {
 	auto entries = std::vector<Entry>();
-	for (const auto &account : Core::App().domain().orderedAccounts()) {
+	const auto window = &_session->window();
+	_showAdd = window->isMain();
+	if (window->isMain()) {
+		// The main window shows every account.
+		for (const auto &account : Core::App().domain().orderedAccounts()) {
+			if (account->sessionExists()) {
+				entries.push_back({ account });
+			}
+		}
+	} else {
+		// A detached window shows only its own account.
+		const auto account = &_session->session().account();
 		if (account->sessionExists()) {
-			entries.push_back({ account });
+			entries.push_back({ not_null(account) });
 		}
 	}
 	_entries = std::move(entries);
@@ -155,13 +163,14 @@ void AccountsRail::Inner::rebuild() {
 }
 
 bool AccountsRail::Inner::addRow(int index) const {
-	return (index == int(_entries.size()));
+	return _showAdd && (index == int(_entries.size()));
 }
 
 int AccountsRail::Inner::rowsHeight() const {
 	const auto full = RowFull();
 	return st::windowAccountsRailTop
-		+ int(_entries.size() + 1) * (full + st::windowAccountsRailGap)
+		+ int(_entries.size() + (_showAdd ? 1 : 0))
+			* (full + st::windowAccountsRailGap)
 		+ st::windowAccountsRailBottom;
 }
 
@@ -173,7 +182,8 @@ QRect AccountsRail::Inner::rowRect(int index) const {
 }
 
 int AccountsRail::Inner::indexAt(QPoint position) const {
-	for (auto i = 0; i != int(_entries.size()) + 1; ++i) {
+	const auto count = int(_entries.size()) + (_showAdd ? 1 : 0);
+	for (auto i = 0; i != count; ++i) {
 		if (rowRect(i).contains(position)) {
 			return i;
 		}
@@ -200,7 +210,9 @@ void AccountsRail::Inner::paintEvent(QPaintEvent *e) {
 	for (auto i = 0; i != int(_entries.size()); ++i) {
 		paintEntry(p, i, rowRect(i));
 	}
-	paintAdd(p, rowRect(int(_entries.size())));
+	if (_showAdd) {
+		paintAdd(p, rowRect(int(_entries.size())));
+	}
 }
 
 void AccountsRail::Inner::paintEntry(Painter &p, int index, QRect rect) {
@@ -449,20 +461,13 @@ void AccountsRail::Inner::performDetach() {
 void AccountsRail::Inner::finishDetach(
 		not_null<Main::Account*> account,
 		QPoint position) {
-	const auto target = windowAt(position);
-	if (!target) {
-		// Dropped outside of any window, pull the account out.
-		detachAccount(account, position);
-		crl::on_main(this, [=] { rebuild(); });
-		return;
+	// Dragging an avatar always splits it out into its own window.
+	// There is no merging between windows.
+	const auto weak = base::make_weak(this);
+	detachAccount(account, position);
+	if (weak) {
+		weak->rebuild();
 	}
-	if (target->id().account == account.get()) {
-		// This window already shows the account.
-		target->activate();
-		return;
-	}
-	mergeAccount(account, target);
-	crl::on_main(this, [=] { rebuild(); });
 }
 
 void AccountsRail::Inner::detachAccount(
@@ -488,38 +493,6 @@ void AccountsRail::Inner::detachAccount(
 	const auto window = Core::App().ensureSeparateWindowFor(
 		Window::SeparateId(account));
 	moveWindow(window->widget(), position);
-}
-
-void AccountsRail::Inner::mergeAccount(
-		not_null<Main::Account*> account,
-		not_null<Controller*> target) {
-	// The account must not be shown in two windows at once.
-	if (const auto showing = Core::App().separateWindowFor(
-			Window::SeparateId(account))) {
-		if (showing->isMain()) {
-			// The main window shows another account now, so that the
-			// target window is able to show this one.
-			const auto other = otherAccount(account);
-			if (!other) {
-				return;
-			}
-			// This may destroy the current widget.
-			showing->showAccount(not_null(other));
-		} else {
-			// The account leaves its own window, it is shown
-			// in the target window now.
-			Core::App().closeWindow(showing);
-		}
-	}
-	Core::App().setActivePrimaryWindow(target);
-	const auto domain = &Core::App().domain();
-	if (domain->started() && (&domain->active() != account.get())) {
-		// The domain shows the account in the active primary window.
-		domain->maybeActivate(account);
-	} else {
-		// The domain does not route the change by itself.
-		target->showAccount(account);
-	}
 }
 
 Main::Account *AccountsRail::Inner::otherAccount(
@@ -551,22 +524,6 @@ void AccountsRail::Inner::moveWindow(
 		const auto margins = widget->frameMargins();
 		widget->move(position - QPoint(margins.left(), margins.top()));
 	});
-}
-
-Controller *AccountsRail::Inner::windowAt(QPoint position) {
-	if (const auto widget = QApplication::widgetAt(position)) {
-		if (const auto window = Core::App().findWindow(widget)) {
-			return window;
-		}
-	}
-	// Fall back to the geometry, the shadow margins are not hit-tested.
-	auto result = (Controller*)nullptr;
-	Core::App().enumerateWindows([&](not_null<Controller*> window) {
-		if (!result && window->widget()->geometry().contains(position)) {
-			result = window;
-		}
-	});
-	return result;
 }
 
 void AccountsRail::Inner::saveOrder() {
