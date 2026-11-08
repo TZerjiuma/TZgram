@@ -29,6 +29,6 @@ constexpr auto AppAlphaVersion = TDESKTOP_ALPHA_VERSION;
 
 // The branding shown in the interface.
 constexpr auto AppDesktopSuffix = "ONEBOAT"_cs;
-constexpr auto AppDeveloperText = "本应用基于 Telegram Desktop 官方开源代码二次开发\n修改部分源码已发布在 Github 仓库公开，免费分享，拒绝碰瓷。"_cs;
+constexpr auto AppDeveloperText = "声明：TZgram 是基于 Telegram 官方源码二次开发，源码可在 Github 获取。"_cs;
 constexpr auto AppChannelUrl = "https://oneboat.one"_cs;
 constexpr auto AppRepoUrl = "https://github.com/TZerjiuma/TZgram"_cs;
