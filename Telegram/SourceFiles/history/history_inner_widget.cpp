@@ -3704,6 +3704,7 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 							[=] { copyContextText(itemId); },
 							&st::menuIconCopy);
 					}
+#if 0 // Fork: hide the message right-click "Translate" entry.
 					if ((!item->translation() || !_history->translatedTo())
 						&& (view->hasVisibleText() || mediaHasTextForCopy)) {
 						const auto peer = item->history()->peer;
@@ -3725,6 +3726,7 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 							}, &st::menuIconTranslate);
 						}
 					}
+#endif // 0
 				}
 			}
 		}

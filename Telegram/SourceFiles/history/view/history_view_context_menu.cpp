@@ -1911,6 +1911,7 @@ void FillContextMenuItems(
 				}, &st::menuIconCopy);
 			}
 
+#if 0 // Fork: hide the message right-click "Translate" entry.
 			const auto translate = mediaHasTextForCopy
 				? (HistoryView::TransribedText(item)
 					.append('\n')
@@ -1932,6 +1933,7 @@ void FillContextMenuItems(
 					}
 				}, &st::menuIconTranslate);
 			}
+#endif // 0
 		}
 	}
 
