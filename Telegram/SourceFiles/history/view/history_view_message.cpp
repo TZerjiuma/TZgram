@@ -6119,15 +6119,9 @@ void RequestInlineTranslation(
 		item->translationInlineDone(to, TextWithEntities());
 		return;
 	}
-	const auto request = item->out()
-		? Ui::TranslateProviderRequest{
-			.text = item->originalText(),
-		}
-		: Ui::PrepareTranslateProviderRequest(
-			provider.get(),
-			item->history()->peer,
-			item->fullId().msg,
-			item->originalText());
+	const auto request = Ui::TranslateProviderRequest{
+		.text = item->originalText(),
+	};
 	const auto fullId = item->fullId();
 	const auto weak = base::make_weak(session);
 	provider->request(request, to, [=](Ui::TranslateProviderResult result) {
