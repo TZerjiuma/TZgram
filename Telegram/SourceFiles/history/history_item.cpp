@@ -3712,7 +3712,8 @@ bool HistoryItem::translationShowRequiresCheck(LanguageId to) const {
 	// Check if a call to translationShowRequiresRequest(to) is not a no-op.
 	if (!to) {
 		if (const auto translation = Get<HistoryMessageTranslation>()) {
-			return (!translation->failed && translation->text.empty())
+			return (!translation->inlineShown
+				&& !translation->failed && translation->text.empty())
 				|| translation->used;
 		}
 		return false;
@@ -3730,7 +3731,9 @@ bool HistoryItem::translationShowRequiresRequest(LanguageId to) {
 	// When changing be sure to reflect in translationShowRequiresCheck(to).
 	if (!to) {
 		if (const auto translation = Get<HistoryMessageTranslation>()) {
-			if (!translation->failed && translation->text.empty()) {
+			if (translation->inlineShown) {
+				return false;
+			} else if (!translation->failed && translation->text.empty()) {
 				Assert(!translation->used);
 				RemoveComponents(HistoryMessageTranslation::Bit());
 			} else {
@@ -3836,7 +3839,9 @@ bool HistoryItem::translationInlineRequest(LanguageId to) {
 	translation->richPage = nullptr;
 	translation->requested = true;
 	translation->failed = false;
-	translation->inlineShown = false;
+	// Keep the pending inline request distinct from a chat-wide request.
+	// translationInlineShown() still returns false until text is available.
+	translation->inlineShown = true;
 	return true;
 }
 
@@ -3847,6 +3852,12 @@ void HistoryItem::translationInlineDone(
 	if (!translation
 		|| !translation->requested
 		|| (translation->to != to)) {
+		LOG(("BUBBLE-TRANSLATE ignored: state=%1, requested=%2, "
+			"inlinePending=%3, targetMatches=%4")
+			.arg(bool(translation))
+			.arg(translation ? translation->requested : false)
+			.arg(translation ? translation->inlineShown : false)
+			.arg(translation ? (translation->to == to) : false));
 		return;
 	}
 	translation->requested = false;
