@@ -6100,6 +6100,7 @@ namespace {
 void RequestInlineTranslation(
 		not_null<Main::Session*> session,
 		not_null<HistoryItem*> item) {
+	LOG(("BUBBLE-TRANSLATE clicked, out=%1").arg(item->out()));
 	if (item->translationInlineShown()) {
 		item->translationInlineRevert();
 		return;
