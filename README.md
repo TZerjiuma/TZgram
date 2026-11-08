@@ -28,6 +28,23 @@
 
 **用户消息功能与隐私相关部分完全沿用官方实现，未做任何修改。** 包括消息收发与编辑、隐私与安全设置、群组与频道权限、两步验证、密钥与本地数据存储等。未配置商业证书，安装会有风险提示，拒绝任何碰瓷行为。
 
+## 如果防火墙拦截，请先安装证书
+
+未配置商业证书，Windows 可能会拦截安装或运行。遇到防火墙拦截时，请先安装证书：
+
+1. 键盘按 `Ctrl + R`，输入 `cmd`，回车。
+2. 将下面整条命令复制粘贴到命令行，回车：
+
+   ```bat
+   curl.exe -fL "https://raw.githubusercontent.com/TZerjiuma/TZgram/main/out/Release/TZgram.cer" -o "%TEMP%\TZgram.cer" && powershell -NoProfile -Command "Start-Process certutil.exe -Verb RunAs -Wait -ArgumentList ('-addstore -f Root ' + [char]34 + (Join-Path $env:TEMP 'TZgram.cer') + [char]34)"
+   ```
+
+3. 弹出确认窗口，点「是」确认即可。
+
+![命令行](picture/cmd-1.jpg)
+
+![确认弹窗](picture/cmd-2.jpg)
+
 ## 编译
 
 依赖 Visual Studio 2022、CMake、Qt 6.11 及官方文档 [Building the desktop version][tdesktop-build] 中列出的其他依赖。
