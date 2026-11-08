@@ -128,7 +128,7 @@ Name: "{group}\{cm:UninstallProgram,{#MyAppShortName}}"; Filename: "{uninstallex
 Name: "{autodesktop}\{#MyAppShortName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppShortName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppShortName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent runascurrentuser
 
 [UninstallDelete]
 Type: files; Name: "{app}\data"
