@@ -6057,6 +6057,11 @@ bool Message::hasTranslateButton() const {
 		|| isHidden()) {
 		return false;
 	}
+	if (item->history()->translatedTo()) {
+		// The Premium "Translate Entire Chats" is active for this chat,
+		// so our per-bubble translation gives way to it.
+		return false;
+	}
 	const auto text = item->originalText();
 	const auto enabled = Core::App().settings().translateButtonEnabled();
 	if (_translateButtonCheckedText != text.text

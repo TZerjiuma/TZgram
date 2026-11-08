@@ -4310,6 +4310,7 @@ TextWithEntities HistoryItem::translatedTextWithLocalEntities() const {
 		; translation
 		&& translation->inlineShown
 		&& !translation->used
+		&& !_history->translatedTo()
 		&& !translation->text.empty()
 		&& !translatedRichPage()) {
 		const auto shift = int(result.text.size()) + 2;
