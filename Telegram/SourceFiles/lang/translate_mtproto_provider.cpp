@@ -94,15 +94,23 @@ public:
 				return;
 			}
 			auto ids = QVector<MTPint>();
+			auto text = QVector<MTPTextWithEntities>();
 			ids.reserve(requests.size());
+			text.reserve(requests.size());
 			for (const auto &request : requests) {
 				ids.push_back(MTP_int(MsgId(request.msgId)));
+				text.push_back(MTP_textWithEntities(
+					MTP_string(request.text.text),
+					Api::EntitiesToMTP(
+						_session,
+						request.text.entities,
+						Api::ConvertOption::SkipLocal)));
 			}
 			_api.request(MTPmessages_TranslateText(
-				MTP_flags(Flag::f_peer | Flag::f_id),
+				MTP_flags(Flag::f_peer | Flag::f_id | Flag::f_text),
 				peer->input(),
 				MTP_vector<MTPint>(ids),
-				MTPVector<MTPTextWithEntities>(),
+				MTP_vector<MTPTextWithEntities>(text),
 				MTP_string(to.twoLetterCode()),
 				MTPstring() // tone
 			)).done([=](const MTPmessages_TranslatedText &result) {
