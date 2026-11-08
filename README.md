@@ -52,10 +52,6 @@
 
 3. 弹出确认窗口，点「是」确认即可。
 
-## 版权声明
-
-TZgram 的二次开发部分（相对 Telegram Desktop 官方源码的修改与新增代码）版权归 **ONEBOAT 同舟** 所有，同样以 GPLv3 许可证开源发布。任何人在使用、修改或再分发本项目的二次开发代码时，须保留本版权声明。
-
 ## 许可
 
 源码基于 [Telegram 官方桌面端][tdesktop] 发布，遵循 **GPLv3 with OpenSSL exception**，许可证见 [LICENSE][license]；二次开发部分的改动同样以该许可证发布。
