@@ -6182,7 +6182,9 @@ void Message::drawTranslateButton(
 		PainterHighQualityEnabler hq(p);
 		p.drawEllipse(rect);
 	}
-	st::historyTranslateIcon.paintInCenter(p, rect);
+	(data()->translationInlineShown()
+		? st::historyTranslateIconDone
+		: st::historyTranslateIcon).paintInCenter(p, rect);
 	if (selectionProgress > 0) {
 		p.setOpacity(o);
 	}
