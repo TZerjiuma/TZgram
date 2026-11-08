@@ -32,7 +32,7 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={userappdata}\{#MyAppName}
+DefaultDirName={localappdata}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 OutputDir={#ReleasePath}
@@ -141,16 +141,16 @@ Type: filesandordirs; Name: "{app}\tcache"
 Type: filesandordirs; Name: "{app}\tdumps"
 Type: filesandordirs; Name: "{app}\modules"
 Type: dirifempty; Name: "{app}"
-Type: files; Name: "{userappdata}\{#MyAppName}\data"
-Type: files; Name: "{userappdata}\{#MyAppName}\data_config"
-Type: files; Name: "{userappdata}\{#MyAppName}\log.txt"
-Type: filesandordirs; Name: "{userappdata}\{#MyAppName}\DebugLogs"
-Type: filesandordirs; Name: "{userappdata}\{#MyAppName}\tupdates"
-Type: filesandordirs; Name: "{userappdata}\{#MyAppName}\tdata"
-Type: filesandordirs; Name: "{userappdata}\{#MyAppName}\tcache"
-Type: filesandordirs; Name: "{userappdata}\{#MyAppName}\tdumps"
-Type: filesandordirs; Name: "{userappdata}\{#MyAppName}\modules"
-Type: dirifempty; Name: "{userappdata}\{#MyAppName}"
+Type: files; Name: "{localappdata}\{#MyAppName}\data"
+Type: files; Name: "{localappdata}\{#MyAppName}\data_config"
+Type: files; Name: "{localappdata}\{#MyAppName}\log.txt"
+Type: filesandordirs; Name: "{localappdata}\{#MyAppName}\DebugLogs"
+Type: filesandordirs; Name: "{localappdata}\{#MyAppName}\tupdates"
+Type: filesandordirs; Name: "{localappdata}\{#MyAppName}\tdata"
+Type: filesandordirs; Name: "{localappdata}\{#MyAppName}\tcache"
+Type: filesandordirs; Name: "{localappdata}\{#MyAppName}\tdumps"
+Type: filesandordirs; Name: "{localappdata}\{#MyAppName}\modules"
+Type: dirifempty; Name: "{localappdata}\{#MyAppName}"
 
 [Code]
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
