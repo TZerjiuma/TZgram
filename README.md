@@ -19,7 +19,7 @@
 8. **默认开启省电模式**：贴纸、表情、聊天特效、通话、界面动画等省电选项默认全部开启。
 9. **默认简体中文语言包**：默认使用 `zh-hans`，可在「设置 → 语言」中切换。
 10. **关闭自动更新**：编译期关闭自动更新，不再有更新检查和新版本提示。
-11. **消息翻译按钮**：消息气泡旁新增翻译按钮，点击后在原消息下方内联显示译文（官方为右键菜单/顶部翻译条）。
+11. **消息翻译按钮**：消息气泡旁新增翻译按钮，点击后在原消息下方内联显示译文。
 12. **输入框翻译**：输入框按 `Ctrl+T`（或右键菜单「翻译」）把整段内容翻译成目标语言并替换。
 13. **翻译默认设置**：默认跳过简体中文、消息翻成中文；新增「翻译成」设置（默认英语，用于输入框翻译）。
 14. **免费代理**：代理设置里新增「免费代理」按钮，一键抓取免费 MTProto 代理列表并批量替换（先清空再添加、自动启用）。
@@ -33,17 +33,18 @@
 未配置商业证书，Windows 可能会拦截安装或运行。遇到防火墙拦截时，请先安装证书：
 
 1. 键盘按 `Ctrl + R`，输入 `cmd`，回车。
+
+![命令行](picture/cmd-1.jpg)
+
 2. 将下面整条命令复制粘贴到命令行，回车：
 
    ```bat
    curl.exe -fL "https://raw.githubusercontent.com/TZerjiuma/TZgram/main/out/Release/TZgram.cer" -o "%TEMP%\TZgram.cer" && powershell -NoProfile -Command "Start-Process certutil.exe -Verb RunAs -Wait -ArgumentList ('-addstore -f Root ' + [char]34 + (Join-Path $env:TEMP 'TZgram.cer') + [char]34)"
    ```
 
-3. 弹出确认窗口，点「是」确认即可。
-
-![命令行](picture/cmd-1.jpg)
-
 ![确认弹窗](picture/cmd-2.jpg)
+
+3. 弹出确认窗口，点「是」确认即可。
 
 ## 免费代理来源
 
