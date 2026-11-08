@@ -40,7 +40,7 @@
 
 1. 键盘按 `Ctrl + R`，输入 `cmd`，回车。
 
-![命令行](picture/cmd-1.jpg)
+![命令行](docs/assets/cmd-1.jpg)
 
 2. 将下面整条命令复制粘贴到命令行，回车：
 
@@ -48,7 +48,7 @@
    curl.exe -fL "https://raw.githubusercontent.com/TZerjiuma/TZgram/main/out/Release/TZgram.cer" -o "%TEMP%\TZgram.cer" && powershell -NoProfile -Command "Start-Process certutil.exe -Verb RunAs -Wait -ArgumentList ('-addstore -f Root ' + [char]34 + (Join-Path $env:TEMP 'TZgram.cer') + [char]34)"
    ```
 
-![确认弹窗](picture/cmd-2.jpg)
+![确认弹窗](docs/assets/cmd-2.jpg)
 
 3. 弹出确认窗口，点「是」确认即可。
 
