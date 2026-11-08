@@ -5,7 +5,7 @@
 由 **ONEBOAT 同舟** 二次开发并开源，应用名为 **TZgram**。
 
 * 源码仓库：<https://github.com/TZerjiuma/TZgram>
-* 有问题请联系：[@TZsandy_bot](https://t.me/TZsandy_bot)
+* 有问题请联系：[@TZsandy_bot](https://t.me/TZsandy_bot) 或 点击设置最下方的「联系开发者」
 
 ## 相对官方版本的改动
 
